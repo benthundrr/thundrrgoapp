@@ -32,8 +32,18 @@ function sheetRows(file, sheetName) {
   return XLSX.utils.sheet_to_json(wb.Sheets[sn], { header: 1, defval: '', raw: true });
 }
 function ls(re) {
-  if (!fs.existsSync(DATA_DIR)) return [];
-  return fs.readdirSync(DATA_DIR).filter(f => re.test(f)).map(f => path.join(DATA_DIR, f));
+  // Look in /data first, then the repo root. Files can live in either place.
+  const dirs = [DATA_DIR, __dirname];
+  const seen = new Set(), out = [];
+  for (const d of dirs) {
+    try {
+      if (!fs.existsSync(d) || !fs.statSync(d).isDirectory()) continue;
+      for (const f of fs.readdirSync(d)) {
+        if (re.test(f) && !seen.has(f)) { seen.add(f); out.push(path.join(d, f)); }
+      }
+    } catch (e) { /* skip unreadable / non-dir */ }
+  }
+  return out;
 }
 
 /* ---- Creator roster (contacts) — take the most recently modified ---- */
@@ -110,7 +120,15 @@ function buildSnapshots(profiles) {
   return snaps.sort((a, b) => (a.end || a.start).localeCompare(b.end || b.start));
 }
 
-/* ---- ContentAnalysis → posts (dedup by Post ID across files, keep latest) ---- */
+/* ContentAnalysis → posts (dedup by Post ID across files, keep latest) */
+const VALID = p => p.views >= 300 && p.dur >= 15;
+function indCode(s) {
+  s = (s || '').toLowerCase();
+  if (s.includes('acc') && s.includes('ttd')) return 'BOTH';
+  if (s.includes('accommod')) return 'ACC';
+  if (s.includes('things')) return 'TTD';
+  return '';
+}
 function buildPosts(profiles) {
   const files = ls(/^ContentAnalysis.*\.xlsx$/i).sort();
   const map = new Map();
@@ -120,6 +138,7 @@ function buildPosts(profiles) {
     const idx = re => head.findIndex(c => re.test(c));
     const I = {
       pid: idx(/Post ID/i), title: idx(/Post title/i), date: idx(/Post date/i), dur: idx(/Duration/i),
+      ind: idx(/Location industry/i),
       loc: idx(/Location name/i), city: idx(/Location city/i), merch: idx(/Merchant name/i),
       cname: idx(/Creator name/i), cid: idx(/Creator ID/i), level: idx(/Creator level/i),
       sales: idx(/Sales value/i), orders: idx(/^Orders/i), views: idx(/Video views/i),
@@ -135,6 +154,7 @@ function buildPosts(profiles) {
       map.set(pid, {
         u, date: norm(r[I.date]),
         title: norm(r[I.title]).slice(0, 120),
+        ind: indCode(r[I.ind]),
         views: num(r[I.views]), sales: r2(num(r[I.sales])), orders: num(r[I.orders]),
         dur: num(r[I.dur]),
         comp: r4(num(r[I.comp])), like: r4(num(r[I.like])), cmt: r4(num(r[I.cmt])),
@@ -146,13 +166,51 @@ function buildPosts(profiles) {
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+/* Cumulative ACC / TTD valid-post + GMV totals (program-to-date) */
+function buildIndustry(posts, asOf) {
+  const z = () => ({ valid: 0, gmv: 0, posts: 0, views: 0 });
+  const acc = z(), ttd = z();
+  for (const p of posts) {
+    const v = VALID(p);
+    if (p.ind === 'ACC' || p.ind === 'BOTH') { acc.posts++; acc.views += p.views; acc.gmv += p.sales; if (v) acc.valid++; }
+    if (p.ind === 'TTD' || p.ind === 'BOTH') { ttd.posts++; ttd.views += p.views; ttd.gmv += p.sales; if (v) ttd.valid++; }
+  }
+  acc.gmv = r2(acc.gmv); ttd.gmv = r2(ttd.gmv);
+  return { asOf, acc, ttd };
+}
+
+/* Agency benchmarks for the coaching engine */
+function buildBenchmarks(posts, snap) {
+  const seen = posts.filter(p => p.views > 0);
+  const durs = seen.map(p => p.dur).filter(d => d > 0).sort((a, b) => a - b);
+  const median = a => a.length ? a[Math.floor(a.length / 2)] : 0;
+  const validCount = posts.filter(VALID).length;
+  const byUser = snap.byUser || {};
+  const sellers = Object.values(byUser).filter(s => s.sales > 0).sort((a, b) => b.sales - a.sales);
+  const top = sellers.slice(0, 20);
+  const avg = (arr, k) => arr.length ? r2(arr.reduce((s, x) => s + (x[k] || 0), 0) / arr.length) : 0;
+  return {
+    medianDuration: median(durs),
+    sweetLow: 10, sweetHigh: 30, sweetMedian: 21,        // from L2 deck
+    volumeFloor: 20, volumeTarget: 100, earnerMedianPosts: 14, // from L2 deck
+    validRate: seen.length ? r4(validCount / seen.length) : 0,
+    topEarnerAvgViews: Math.round(avg(top, 'avgViews')),
+    topEarnerAvgPosts: Math.round(avg(top, 'postsViews')),
+    topEarnerAvgAOV: avg(top, 'aov'),
+    sellersCount: sellers.length,
+    totalCreators: Object.keys(byUser).length
+  };
+}
+
 function main() {
   const profiles = {};
   const roster = buildRoster();
   const snapshots = buildSnapshots(profiles);
   const posts = buildPosts(profiles);
 
-  const latest = snapshots[snapshots.length - 1] || { start: '', end: '' };
+  const latest = snapshots[snapshots.length - 1] || { start: '', end: '', byUser: {} };
+  const industry = buildIndustry(posts, latest.end);
+  const benchmarks = buildBenchmarks(posts, latest);
   const out = {
     generatedAt: new Date().toISOString(),
     dataRange: { start: latest.start, end: latest.end },
@@ -162,10 +220,13 @@ function main() {
       snapshots: snapshots.length,
       posts: posts.length
     },
+    industry, benchmarks,
     profiles, roster, snapshots, posts
   };
   fs.writeFileSync(OUT, JSON.stringify(out));
-  console.log('[build] data.json written',
-    `· profiles ${out.counts.profiles} · roster ${out.counts.roster} · snapshots ${out.counts.snapshots} · posts ${out.counts.posts} · ${(fs.statSync(OUT).size / 1024).toFixed(0)}kb`);
+  console.log('[build] data.json',
+    `· profiles ${out.counts.profiles} · roster ${out.counts.roster} · posts ${out.counts.posts}`,
+    `· ACC ${industry.acc.valid} valid/$${industry.acc.gmv} · TTD ${industry.ttd.valid} valid/$${industry.ttd.gmv}`,
+    `· ${(fs.statSync(OUT).size / 1024).toFixed(0)}kb`);
 }
 main();

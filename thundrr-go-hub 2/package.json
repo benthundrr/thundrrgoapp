@@ -1,0 +1,12 @@
+{
+  "name": "thundrr-go-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "THUNDRR GO Creator Hub — compiles daily TikTok GO exports into a single-file dashboard.",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "xlsx": "0.18.5"
+  }
+}

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TikTokGO — Creator Coaching L1</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,600;1,700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#f97316;--pl:#fb923c;--pd:#ea580c;--ps:#fff7ed;--pb:rgba(249,115,22,.18);
+  --bg:#fffaf5;--bg2:#fff;--fg:#1a120b;--mu:#7a6a5d;--mul:#a89a8d;
+  --br:#f0e3d6;--card:#ffffff;--gold:#b45309;--gold-bg:#fef3c7;--gold-br:#fcd34d;
+  --green:#15803d;--green-bg:#f0fdf4;--green-br:#bbf7d0;
+  --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-br:#ddd6fe;
+  --red:#dc2626;--red-bg:#fef2f2;--red-br:#fecaca;
+  --ssm:0 1px 3px rgba(120,70,20,.06);--smd:0 8px 30px rgba(180,90,30,.10);
+  --slg:0 24px 70px rgba(180,90,30,.16);
+}
+html,body{height:100%}
+body{font-family:'Montserrat',sans-serif;color:var(--fg);background:var(--bg);-webkit-font-smoothing:antialiased;overflow:hidden;line-height:1.55}
+.bg-atmosphere{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 55% 50% at 82% 12%,rgba(249,115,22,.13),transparent 62%),radial-gradient(ellipse 65% 55% at 12% 88%,rgba(251,191,36,.12),transparent 62%)}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(180,110,40,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(180,110,40,.04) 1px,transparent 1px);
+  background-size:54px 54px;mask-image:radial-gradient(ellipse 85% 75% at 50% 50%,#000,transparent 92%);-webkit-mask-image:radial-gradient(ellipse 85% 75% at 50% 50%,#000,transparent 92%)}
+.orb{position:fixed;border-radius:50%;filter:blur(85px);opacity:.55;z-index:0;pointer-events:none;animation:orbFloat 22s ease-in-out infinite}
+.orb1{width:540px;height:540px;background:radial-gradient(circle,#ffd0ad,transparent 66%);top:-16%;right:-10%}
+.orb2{width:460px;height:460px;background:radial-gradient(circle,#ffe6bf,transparent 66%);bottom:-14%;left:-9%;animation-delay:-8s;animation-duration:28s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(42px,-28px) scale(1.05)}66%{transform:translate(-30px,40px) scale(.96)}}
+.topbar{position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;padding:7px 8px 7px 18px;
+  background:rgba(255,255,255,.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--br);border-radius:100px;box-shadow:var(--ssm)}
+.topbar img{height:24px;display:block}
+.topbar .tag{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--p);background:var(--ps);padding:5px 13px;border-radius:100px}
+.stage{position:relative;z-index:10;height:100vh;width:100vw;display:flex;align-items:center;justify-content:center;padding:96px 48px 96px}
+.slide{display:none;width:100%;max-width:1080px}
+.slide.active{display:block}
+.panel{background:var(--card);border:1px solid var(--br);border-radius:34px;box-shadow:var(--slg);padding:54px 64px;position:relative;overflow:hidden;min-height:560px;display:flex;flex-direction:column;justify-content:center}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--p),#fbbf24,var(--p))}
+.slide.active .panel{animation:panelIn .7s cubic-bezier(.16,1,.3,1) both}
+@keyframes panelIn{from{opacity:0;transform:translateY(26px) scale(.975);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.r{opacity:0;transform:translateY(16px);filter:blur(4px)}
+.slide.active .r{animation:rUp .6s cubic-bezier(.16,1,.3,1) both}
+@keyframes rUp{to{opacity:1;transform:none;filter:none}}
+.slide.active .r.d1{animation-delay:.10s}.slide.active .r.d2{animation-delay:.18s}.slide.active .r.d3{animation-delay:.26s}
+.slide.active .r.d4{animation-delay:.34s}.slide.active .r.d5{animation-delay:.42s}.slide.active .r.d6{animation-delay:.50s}
+.slide.active .r.d7{animation-delay:.58s}.slide.active .r.d8{animation-delay:.66s}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--p);background:var(--ps);padding:8px 18px;border-radius:100px;margin-bottom:22px;align-self:flex-start}
+h1.title{font-size:clamp(38px,5.2vw,68px);font-weight:800;letter-spacing:-.035em;line-height:1.04;margin-bottom:18px}
+h1.title em,h2 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--p)}
+h2{font-size:clamp(28px,3.4vw,44px);font-weight:800;letter-spacing:-.03em;line-height:1.08;margin-bottom:24px}
+.lead{font-size:clamp(16px,1.5vw,20px);color:var(--mu);max-width:820px;line-height:1.6}
+.lead b{color:var(--pd)}
+.points{display:flex;flex-direction:column;gap:13px;margin-top:6px}
+.pt{display:flex;gap:16px;align-items:flex-start;font-size:clamp(15px,1.45vw,19px);font-weight:600;color:var(--fg);line-height:1.45}
+.pt .ic{flex-shrink:0;width:34px;height:34px;border-radius:11px;background:var(--ps);border:1px solid var(--pb);display:flex;align-items:center;justify-content:center;font-size:16px;margin-top:1px;transition:transform .25s,background .25s}
+.pt:hover .ic{transform:scale(1.12) rotate(-4deg);background:var(--p)}
+.pt b{color:var(--pd);font-weight:800}
+.pt .sub{display:block;font-size:14px;font-weight:600;color:var(--mu);margin-top:3px;line-height:1.45}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+.cols.tri{grid-template-columns:1fr 1fr 1fr}
+.tile{background:var(--bg);border:1px solid var(--br);border-radius:20px;padding:20px;transition:transform .25s,box-shadow .25s,border-color .25s}
+.tile:hover{transform:translateY(-4px);box-shadow:var(--smd);border-color:var(--pb)}
+.tile .th{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--p);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.tile .tx{font-size:15px;font-weight:600;color:var(--fg);line-height:1.5}
+.tile .tx b{color:var(--pd);font-weight:800}
+.milestone{display:flex;align-items:center;gap:18px;padding:22px 26px;border-radius:22px;background:linear-gradient(135deg,var(--green-bg),#fff);border:1.5px solid var(--green-br);margin-bottom:16px}
+.milestone .mi{font-size:38px;line-height:1}
+.milestone .mt{font-size:clamp(18px,1.9vw,23px);font-weight:800;letter-spacing:-.02em;line-height:1.3}
+.milestone .mt b{color:var(--green)}
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:6px}
+.statgrid.quad{grid-template-columns:repeat(4,1fr)}
+.stat{background:var(--bg);border:1px solid var(--br);border-radius:20px;padding:22px 20px;transition:transform .25s,box-shadow .25s,border-color .25s}
+.stat:hover{transform:translateY(-4px);box-shadow:var(--smd);border-color:var(--pb)}
+.stat .snum{font-size:clamp(26px,3.4vw,40px);font-weight:900;letter-spacing:-.04em;color:var(--p);line-height:1}
+.stat .snum span{font-size:15px;font-weight:800;color:var(--mu);letter-spacing:-.01em}
+.stat.green .snum{color:var(--green)}.stat.purple .snum{color:var(--purple)}
+.stat .slab{font-size:14px;font-weight:800;color:var(--fg);margin-top:10px;line-height:1.3}
+.stat .sfoot{font-size:12.5px;font-weight:600;color:var(--mu);margin-top:5px;line-height:1.4}
+.datasrc{font-size:12px;font-weight:600;color:var(--mul);margin-top:18px;font-style:italic}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px}
+.half{border-radius:20px;padding:22px;border:1.5px solid}
+.half.cold{background:var(--purple-bg);border-color:var(--purple-br)}
+.half.warm{background:var(--green-bg);border-color:var(--green-br)}
+.half .hh{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.half.cold .hh{color:var(--purple)}.half.warm .hh{color:var(--green)}
+.half .hbig{font-size:clamp(24px,3vw,34px);font-weight:900;letter-spacing:-.03em;line-height:1}
+.half.cold .hbig{color:var(--purple)}.half.warm .hbig{color:var(--green)}
+.half .hx{font-size:13.5px;font-weight:600;color:var(--fg);margin-top:9px;line-height:1.45}
+.half .hx b{font-weight:800}
+.callout{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-radius:16px;background:var(--ps);border:1px solid var(--pb);margin-top:16px}
+.callout .ci{font-size:22px;line-height:1.1}
+.callout .ct{font-size:14.5px;font-weight:600;color:var(--fg);line-height:1.5}
+.callout .ct b{color:var(--pd);font-weight:800}
+.thankwrap{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.thankwrap .eyebrow{align-self:center}
+.controls{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;padding:8px 10px;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--br);border-radius:100px;box-shadow:var(--smd)}
+.navbtn{width:44px;height:44px;border-radius:50%;border:1px solid var(--br);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);transition:transform .2s,background .2s,color .2s,border-color .2s}
+.navbtn:hover:not(:disabled){background:var(--p);color:#fff;border-color:var(--p);transform:scale(1.08)}
+.navbtn:disabled{opacity:.35;cursor:default}.navbtn svg{width:20px;height:20px}
+.counter{font-size:14px;font-weight:800;letter-spacing:.02em;color:var(--fg);min-width:58px;text-align:center}
+.counter span{color:var(--mul);font-weight:700}
+.dots{display:flex;gap:7px;padding:0 6px;max-width:300px;flex-wrap:wrap;justify-content:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--br);cursor:pointer;transition:transform .2s,background .2s,width .25s}
+.dot:hover{background:var(--pl)}.dot.on{background:var(--p);width:22px;border-radius:100px}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--p),#fbbf24);z-index:70;width:0;transition:width .4s cubic-bezier(.16,1,.3,1)}
+@media(max-width:820px){
+  .stage{padding:84px 16px 110px}
+  .panel{padding:34px 22px;border-radius:26px;min-height:auto}
+  .cols,.cols.tri,.split,.statgrid,.statgrid.quad{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.orb{animation:none}.slide.active .panel,.slide.active .r{animation-duration:.01ms}}
+</style>
+</head>
+<body>
+<div class="bg-atmosphere"></div>
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="progress" id="progress"></div>
+
+<div class="topbar">
+  <a href="https://www.thundrrgo.com/" target="_blank"><img src="https://cdn.prod.website-files.com/6942f2aace4e1cae14190f9f/69a9d51efd6b7f4ca140b72f_logo.png" alt="Thundrr GO"></a>
+  <span class="tag">Creator Coaching · L1</span>
+</div>
+
+<div class="stage" id="stage">
+
+  <!-- 0 · TITLE -->
+  <section class="slide active">
+    <div class="panel thankwrap">
+      <div class="eyebrow r d1">✦ Momentum Level · L1 — 2 of 3</div>
+      <h1 class="title r d2">Creator Coaching:<br><em>Refine Your Craft.</em></h1>
+      <p class="lead r d3" style="text-align:center">At L0 you learned to post. At L1 you make <b>every post work harder</b> — sharper hooks, smarter captions and markets — to reach <b>$5K+ GMV a month</b>.</p>
+      <div class="flow r d4" style="margin-top:30px;justify-content:center;display:flex;flex-wrap:wrap;gap:9px;padding:20px 22px;background:var(--ps);border:1px solid var(--pb);border-radius:18px">
+        <span style="font-size:14px;font-weight:700;background:var(--card);border:1px solid var(--br);padding:8px 14px;border-radius:100px">$1K+ GMV</span>
+        <span style="color:var(--p);font-weight:900">→</span>
+        <span style="font-size:14px;font-weight:700;background:var(--card);border:1px solid var(--br);padding:8px 14px;border-radius:100px">Refine</span>
+        <span style="color:var(--p);font-weight:900">→</span>
+        <span style="font-size:14px;font-weight:700;background:var(--card);border:1px solid var(--br);padding:8px 14px;border-radius:100px">$5K+ GMV / Month</span>
+      </div>
+      <p class="lead r d5" style="text-align:center;font-size:14px;margin-top:20px">Built on Thundrr's last 73 days of creator data — 3,663 posts, 287 managed creators.</p>
+    </div>
+  </section>
+
+  <!-- 1 · THESIS -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">01 · The L1 Thesis</div>
+      <h2 class="r d2">You Can Post.<br>Now <em>Refine.</em></h2>
+      <p class="lead r d3" style="margin-bottom:20px">You proved you can make sales. Leveling up isn't about doing more — it's about doing it <b>better</b>. Four craft upgrades separate $1K creators from $5K ones:</p>
+      <div class="cols r d4">
+        <div class="tile"><div class="th">① The Hook</div><div class="tx">Win the <b>first 3 seconds</b> so people stop scrolling and actually watch.</div></div>
+        <div class="tile"><div class="th">② Caption SEO</div><div class="tx">Write captions that <b>get found in search</b> and turn browsers into bookers.</div></div>
+        <div class="tile"><div class="th">③ Smart Markets</div><div class="tx">Film where <b>others aren't</b> — overlooked beats crowded every time.</div></div>
+        <div class="tile"><div class="th">④ Read the Data</div><div class="tx">Let your <b>analytics</b> tell you what to make more of.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · CONSISTENCY SYSTEM -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">02 · The Posting Engine</div>
+      <h2 class="r d2">Build a <em>Consistency System</em></h2>
+      <p class="lead r d3" style="margin-bottom:16px">Volume at this level isn't grinding harder — it's a simple system you repeat every week. Aim for <b>3–5 posts a day</b>.</p>
+      <div class="points">
+        <div class="pt r d4"><span class="ic">🎥</span><div>Batch-film <b>2 days a week</b>, post the other 5<span class="sub">Two solid filming days can stock a full week of content.</span></div></div>
+        <div class="pt r d5"><span class="ic">🗂️</span><div>Post from a <b>draft queue</b>, never from scratch same-day<span class="sub">A queue means a busy day never breaks your streak.</span></div></div>
+        <div class="pt r d6"><span class="ic">⏰</span><div>Spread posts across <b>3 daily windows</b><span class="sub">Recommended: 6–9 AM · 12–2 PM · 7–10 PM local.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2.5 · POSTING CADENCE BY VERTICAL -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">✦ Posting Cadence</div>
+      <h2 class="r d2">Posting Cadence by <em>Vertical</em></h2>
+      <p class="lead r d3" style="margin-bottom:16px">When you post depends on what you post. Hotels and attractions get booked on different rhythms — line your posts up with each one.</p>
+      <div class="cols r d4">
+        <div class="tile">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px">
+            <div class="th" style="margin-bottom:0">🏨 ACC · Hotels</div>
+            <span style="font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--green);background:var(--green-bg);border:1px solid var(--green-br);padding:4px 10px;border-radius:100px">Timing-driven</span>
+          </div>
+          <div class="tx" style="margin-bottom:4px"><b>Post:</b> Sunday evening → Wednesday night</div>
+          <div class="tx" style="margin-bottom:4px"><b>Peak booking:</b> Monday</div>
+          <div class="tx" style="margin-bottom:11px"><b>Lever:</b> <span style="color:var(--green);font-weight:800">STRONG</span> — timing is a real, measured lever</div>
+          <div style="font-size:13px;font-weight:500;color:var(--mu);line-height:1.45">Hotel bookings follow a weekly planning ritual — travelers research and book from a desk early in the work week, Monday being the single biggest reservation day. Post ahead of that window to be in front of the planner.</div>
+        </div>
+        <div class="tile">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px">
+            <div class="th" style="margin-bottom:0">🎟️ TTD · Things To Do</div>
+            <span style="font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--purple);background:var(--purple-bg);border:1px solid var(--purple-br);padding:4px 10px;border-radius:100px">Discovery-driven</span>
+          </div>
+          <div class="tx" style="margin-bottom:4px"><b>Post:</b> Wednesday night → Sunday morning</div>
+          <div class="tx" style="margin-bottom:4px"><b>Peak booking:</b> Thursday–Saturday (weekend surge)</div>
+          <div class="tx" style="margin-bottom:11px"><b>Lever:</b> <span style="color:var(--purple);font-weight:800">SOFT</span> — a secondary optimization, not the main driver</div>
+          <div style="font-size:13px;font-weight:500;color:var(--mu);line-height:1.45">Tours and attractions get booked last-minute and in-destination — often same-day, 0–3 days out, on mobile while the traveler is already there. The real driver is evergreen discoverability: your content needs to be live and searchable when someone nearby is deciding "what do we do today." The Wed–Sun window rides the weekend surge on top of that base.</div>
+        </div>
+      </div>
+      <div class="callout r d5"><span class="ci">🧭</span><div class="ct">Hotels reward <b>leading the planner</b>. Attractions reward <b>being there when they search</b>.</div></div>
+    </div>
+  </section>
+
+  <!-- 3 · THE HOOK -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">03 · Retention</div>
+      <h2 class="r d2">Win the First <em>3 Seconds</em></h2>
+      <p class="lead r d3" style="margin-bottom:16px">Most viewers decide to stay or scroll before second three. The hook is the highest-leverage edit you can make.</p>
+      <div class="points">
+        <div class="pt r d4"><span class="ic">🎬</span><div>Open on your <b>single best visual</b> — the rooftop, the view, the reveal<span class="sub">Never open on a walk-up, a logo, or "hey guys."</span></div></div>
+        <div class="pt r d5"><span class="ic">💬</span><div>State the <b>place + the payoff</b> in the first line of on-screen text<span class="sub">"$120 beachfront room in Pensacola" tells them why to watch.</span></div></div>
+        <div class="pt r d6"><span class="ic">✂️</span><div>Cut the intro — <b>every second must earn its place</b><span class="sub">In the data, longer videos lose completion. Tighten ruthlessly.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · CAPTION & SEO -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">04 · Get Found</div>
+      <h2 class="r d2">Caption & <em>SEO</em> Optimization</h2>
+      <p class="lead r d3" style="margin-bottom:16px">TikTok GO is a <b>search engine</b> — your caption is how buyers find you weeks after you post.</p>
+      <div class="cols r d4">
+        <div class="tile"><div class="th">🔑 Lead with location</div><div class="tx">Open with the <b>place name</b> — it's your #1 keyword.</div></div>
+        <div class="tile"><div class="th">💲 Anchor the price</div><div class="tx">Add <b>"under $150/night"</b> or "starting at $89" to signal value.</div></div>
+        <div class="tile"><div class="th">⚡ Use action verbs</div><div class="tx"><b>Book · Stay · Visit · Experience · Explore</b> — words that convert.</div></div>
+        <div class="tile"><div class="th">👆 Close with a CTA</div><div class="tx">End every caption with <b>"Link in bio"</b> or "Tap to book."</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · CAPTIONS SELL (DATA) -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">05 · What the Data Shows</div>
+      <h2 class="r d2">Captions <em>Sell</em></h2>
+      <p class="lead r d3" style="margin-bottom:18px">The single biggest difference between posts that sold and posts that didn't wasn't the video — it was the <b>caption length</b>.</p>
+      <div class="split r d4">
+        <div class="half cold">
+          <div class="hh">✕ Too short</div>
+          <div class="hbig">~6 words</div>
+          <div class="hx">"Nice hotel 🏨 #travel" — what most posts look like. <b>Rarely converts.</b></div>
+        </div>
+        <div class="half warm">
+          <div class="hh">✓ Tells the story</div>
+          <div class="hbig">~40+ words</div>
+          <div class="hx">"Beach AND pool views on the Emerald Coast? I loved my stay at the Fairfield Inn & Suites — link in bio to book." <b>This style drove $1.4K.</b></div>
+        </div>
+      </div>
+      <div class="callout r d5"><span class="ci">✍️</span><div class="ct">Posts that sold ran <b>~250 characters</b> vs ~95 for the rest. Lead with the destination in your <b>first two lines</b>, then end with a clear CTA.</div></div>
+    </div>
+  </section>
+
+  <!-- 6 · SATURATION TRAP (DATA) -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">06 · The Saturation Trap</div>
+      <h2 class="r d2">Skip the <em>Saturated</em> Markets</h2>
+      <p class="lead r d3" style="margin-bottom:18px">The biggest hotspots are the <b>worst place to compete</b>. Dozens of creators film the same hotels and the buying audience is tapped out. The data points somewhere unexpected:</p>
+      <div class="split r d4">
+        <div class="half cold">
+          <div class="hh">🟣 Los Angeles · saturated</div>
+          <div class="hbig">705 posts<br><span style="font-size:.6em">→ $387 total</span></div>
+          <div class="hx">Dozens of creators chasing the same LA hotels. Almost nothing converted — <b>same story in Miami, San Diego, SF</b>.</div>
+        </div>
+        <div class="half warm">
+          <div class="hh">🟢 New Haven, CT · overlooked</div>
+          <div class="hbig">3 posts<br><span style="font-size:.6em">→ $1,543</span></div>
+          <div class="hx">A handful of posts in a city <b>nobody's racing to film</b> — out-earned all of Los Angeles by <b>4×</b>.</div>
+        </div>
+      </div>
+      <div class="callout r d5"><span class="ci">🎯</span><div class="ct">Fewer creators competing, and viewers who are <b>actually planning that trip</b>. The next slide shows how to find your own.</div></div>
+    </div>
+  </section>
+
+  <!-- 7 · FIND YOUR MARKET -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">07 · Market Selection</div>
+      <h2 class="r d2">Find Your <em>Overlooked Market</em></h2>
+      <p class="lead r d3" style="margin-bottom:16px">You don't need to travel — the underserved market is usually right outside the hotspot. Scout it like this:</p>
+      <div class="points">
+        <div class="pt r d4"><span class="ic">🔎</span><div>Search the marketplace for properties <b>near you with few existing posts</b><span class="sub">Low post count = low competition = your opening.</span></div></div>
+        <div class="pt r d5"><span class="ic">🚗</span><div>Target <b>mid-size towns & regional gems</b> 30 minutes off the tourist strip<span class="sub">The boutique inn, the lake resort, the small-town stay.</span></div></div>
+        <div class="pt r d6"><span class="ic">📌</span><div>Pick <b>3–5 markets you can reach</b> and own them<span class="sub">Repeat visits build local knowledge and a recognizable lane.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · READ YOUR ANALYTICS -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">08 · Start Measuring</div>
+      <h2 class="r d2">Read Your <em>Analytics</em></h2>
+      <p class="lead r d3" style="margin-bottom:16px">At L1 you start letting data steer you. Three numbers tell you what to do next:</p>
+      <div class="cols tri r d4">
+        <div class="tile"><div class="th">👀 Views</div><div class="tx">Did it get <b>reach?</b> Low views = weak hook or wrong tags.</div></div>
+        <div class="tile"><div class="th">👆 CTR</div><div class="tx">Did people <b>click?</b> Low CTR = weak caption or no clear CTA.</div></div>
+        <div class="tile"><div class="th">💰 Orders</div><div class="tx">Did it <b>sell?</b> Views but no orders = fix the offer, not the camera.</div></div>
+      </div>
+      <div class="callout r d5"><span class="ci">🔁</span><div class="ct">Check weekly and <b>replicate your top post</b> — same hook, caption style, and market — instead of starting from scratch. This habit becomes your L2 review loop.</div></div>
+    </div>
+  </section>
+
+  <!-- 9 · BY THE NUMBERS -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">✦ By the Numbers</div>
+      <h2 class="r d2">The L1 <em>Playbook</em>, in Data</h2>
+      <div class="statgrid quad">
+        <div class="stat green r d3"><div class="snum">37<span>%</span></div><div class="slab">Earn rate at 21–40 posts/mo</div><div class="sfoot">vs under 1% below 5. Consistency is the dial.</div></div>
+        <div class="stat r d4"><div class="snum">~3<span>×</span></div><div class="slab">Longer captions on posts that sold</div><div class="sfoot">~250 chars vs ~95. Tell the story.</div></div>
+        <div class="stat r d5"><div class="snum">14</div><div class="slab">Median monthly posts of earners</div><div class="sfoot">vs just 3 for the typical creator.</div></div>
+        <div class="stat purple r d6"><div class="snum">4<span>×</span></div><div class="slab">Overlooked New Haven beat all of LA</div><div class="sfoot">Go where others aren't.</div></div>
+      </div>
+      <div class="datasrc r d7">Source: Thundrr GO managed-creator content export · Apr 3 – Jun 14, 2026 · 3,663 posts · 287 creators · 24.5M views</div>
+    </div>
+  </section>
+
+  <!-- 10 · MILESTONE -->
+  <section class="slide">
+    <div class="panel">
+      <div class="eyebrow r d1">09 · The Target</div>
+      <h2 class="r d2">Your <em>L1 Milestone</em></h2>
+      <div class="milestone r d3">
+        <span class="mi">🚀</span>
+        <div class="mt">Hit this to reach <b>L2:</b> $5,000 GMV in a single month</div>
+      </div>
+      <div class="points">
+        <div class="pt r d4"><span class="ic">📅</span><div>Review analytics <b>weekly</b> — double what works, drop what doesn't<span class="sub">One change a week compounds over the month.</span></div></div>
+        <div class="pt r d5"><span class="ic">🎯</span><div>Refine relentlessly — <b>better content is the only way up</b><span class="sub">You don't level up by posting more of the same; you level up by posting better.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · THANK YOU -->
+  <section class="slide">
+    <div class="panel thankwrap">
+      <div class="eyebrow r d1">✦ Let's Talk</div>
+      <h1 class="title r d2">Thank You.<br><em>Q&amp;A</em></h1>
+    </div>
+  </section>
+
+</div>
+
+<div class="controls">
+  <button class="navbtn" id="prev" aria-label="Previous">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="counter"><span id="cur">1</span> <span>/ <span id="tot">12</span></span></div>
+  <div class="dots" id="dots"></div>
+  <button class="navbtn" id="next" aria-label="Next">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+const total=slides.length;let i=0;
+const prev=document.getElementById('prev'),next=document.getElementById('next');
+const cur=document.getElementById('cur'),progress=document.getElementById('progress');
+const dotsWrap=document.getElementById('dots');
+document.getElementById('tot').textContent=total;
+slides.forEach((_,n)=>{const d=document.createElement('div');d.className='dot'+(n===0?' on':'');
+  d.onclick=()=>go(n);dotsWrap.appendChild(d);});
+const dots=[...dotsWrap.children];
+function go(n){
+  n=Math.max(0,Math.min(total-1,n));if(n===i&&slides[i].classList.contains('active'))return;
+  slides[i].classList.remove('active');i=n;
+  void slides[i].offsetWidth;
+  slides[i].classList.add('active');
+  cur.textContent=i+1;
+  prev.disabled=i===0;next.disabled=i===total-1;
+  progress.style.width=((i)/(total-1)*100)+'%';
+  dots.forEach((d,k)=>d.classList.toggle('on',k===i));
+}
+prev.onclick=()=>go(i-1);next.onclick=()=>go(i+1);
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')go(i+1);
+  else if(e.key==='ArrowLeft'||e.key==='PageUp')go(i-1);
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(total-1);
+});
+let sx=0;document.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;
+  if(Math.abs(dx)>55)go(i+(dx<0?1:-1));},{passive:true});
+go(0);
+</script>
+</body>
+</html>

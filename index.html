@@ -99,6 +99,10 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
 .chip{font-size:12.5px;font-weight:800;padding:8px 16px;border-radius:100px;border:1px solid var(--br);background:var(--card);color:var(--mu);transition:all .18s}
 .chip:hover{border-color:var(--p);color:var(--p)}
 .chip.on{background:var(--p);color:#fff;border-color:var(--p);box-shadow:0 6px 14px var(--pb)}
+.seg{display:inline-flex;background:var(--bg2);border:1px solid var(--br);border-radius:100px;padding:3px;gap:2px;margin:-8px 0 18px}
+.seg button{border:none;background:none;font-weight:800;font-size:12.5px;color:var(--mu);padding:8px 17px;border-radius:100px;transition:all .18s}
+.seg button.on{background:var(--p);color:#fff;box-shadow:0 4px 12px var(--pb)}
+.seg button:not(.on):hover{color:var(--fg)}
 .examples{margin-top:10px;border-top:1px solid var(--br);padding-top:10px;display:none}
 .examples.open{display:block;animation:fade .25s ease both}
 .ex-row{display:flex;align-items:center;gap:10px;padding:7px 0}
@@ -624,6 +628,9 @@ const saveManaged=()=>localStorage.setItem(managedKey(),JSON.stringify([...MANAG
 const latestSnap=()=>DB.snapshots.at(-1)||{byUser:{}};
 const snapFor=u=>latestSnap().byUser[u]||null;
 function monthSnapGMV(u,mk){const s=DB.snapshots.find(s=>s.monthKey===mk);return s&&s.byUser[u]?s.byUser[u].sales:null;}
+function periodKPIs(){const b=latestSnap().byUser;let gmv=0,orders=0,red=0,redO=0,views=0;
+  for(const u in b){const s=b[u];gmv+=s.sales||0;orders+=s.orders||0;red+=s.redemption||0;redO+=s.redeemedOrders||0;views+=s.views||0;}
+  return{gmv:Math.round(gmv*100)/100,orders,redemption:Math.round(red*100)/100,redeemed:redO,views,aov:orders?gmv/orders:0,sellers:Object.values(b).filter(s=>s.sales>0).length};}
 
 /* indexing */
 let IDX={byUser:{},months:[],curMonth:'',prevMonth:''};
@@ -660,38 +667,41 @@ function renderDash(){
   const list=Object.keys(latestSnap().byUser);
   if(!DASH_SCOPE)DASH_SCOPE=IDX.curMonth||'all';
   const scope=DASH_SCOPE,isCur=scope===IDX.curMonth,ps=prevScope(scope);
-  const ind=industryFor(scope),daily=dailyFor(scope),D=daily.at(-1)||{ag:0,tg:0,av:0,tv:0},Dp=daily.at(-2)||null;
-  const pind=ps?industryFor(ps):null;
+  const K=periodKPIs();                       // GMV/orders/AOV/redemption — period totals from snapshot (match portal)
+  const split=industryFor('all');             // ACC/TTD GMV split (sums to period total)
+  const vNow=industryFor(scope),vPrev=ps?industryFor(ps):null; // valid posts by month
+  const dGmv=dailyFor('all');                  // GMV trend → reaches period total
+  const dVal=dailyFor(scope);                  // valid-post trend by month
   const ag=aggFor(list,scope),pag=ps?aggFor(list,ps):{V:0,P:0};
   const del=(c,p)=>{if(p==null||!p)return{c:'flat',t:''};const d=(c-p)/p*100;return{c:d>0.5?'up':d<-0.5?'down':'flat',t:(d>0?'▲':d<0?'▼':'•')+Math.abs(d).toFixed(0)+'%'};};
-  const inc=(n,m)=>{if(!Dp||!n)return{c:'flat',t:''};return{c:n>0?'up':'down',t:(n>0?'▲ +':'▼ ')+(m?money(Math.abs(n)):fmt(Math.abs(n)))+(isCur?' today':'')};};
-  const totGmv=ind.acc.gmv+ind.ttd.gmv;
   const scopeLabel=scope==='all'?'All time':mLabel(scope);
+  const period=`${ymd(DB.dataRange.start)}–${ymd(DB.dataRange.end)}`;
   const chips=[...IDX.months].reverse().map(m=>`<button class="chip ${scope===m?'on':''}" onclick="setScope('${m}')">${mLabel(m).split(' ')[0]}</button>`).join('')+`<button class="chip ${scope==='all'?'on':''}" onclick="setScope('all')">All time</button>`;
 
   $('#v-dash').innerHTML=`
    <div class="h-eyebrow">TikTok GO · Program</div>
    <h1 class="h-title">Program <em>dashboard</em></h1>
-   <div class="h-sub">${list.length} creators in the program · ${ag.active} active · ${scope==='all'?'program to date':scopeLabel}${isCur?` · as of ${ymd(DB.dataRange.end)}`:''}</div>
-   <div class="chips">${chips}</div>
+   <div class="h-sub">${list.length} creators · ${K.sellers} selling · period ${period}</div>
 
    <div class="mini-stats">
-     ${mini('Paid GMV',totGmv,'money',pind?del(totGmv,pind.acc.gmv+pind.ttd.gmv):{c:'flat',t:''},'ACC + TTD')}
-     ${mini('Valid posts',ind.totalValid,'int',pind?del(ind.totalValid,pind.totalValid):{c:'flat',t:''},`${ind.acc.valid} ACC · ${ind.ttd.valid} TTD`)}
-     ${mini('Roster views',ag.V,'fmt',del(ag.V,pag.V),scopeLabel.split(' ')[0])}
-     ${mini('Posts',ag.P,'fmt',del(ag.P,pag.P),scopeLabel.split(' ')[0])}
+     ${mini('Paid GMV',K.gmv,'money',{c:'flat',t:''},'period total')}
+     ${mini('Orders',K.orders,'int',{c:'flat',t:''},K.redeemed+' redeemed')}
+     ${mini('AOV',K.aov,'money',{c:'flat',t:''},'per order')}
+     ${mini('Redemption',K.redemption,'money',{c:'flat',t:''},'period')}
    </div>
 
+   <div class="chips">${chips}<span style="flex:1"></span><span class="chip" style="pointer-events:none;background:var(--bg2);color:var(--mu)">valid posts · ${scopeLabel}</span></div>
+
    <div class="prog">
-     ${progCard('acc','🏨','ACC · Accommodations',ind.acc.valid,ind.acc.gmv,inc(Dp?D.av-Dp.av:0,false),inc(Dp?D.ag-Dp.ag:0,true),scopeLabel)}
-     ${progCard('ttd','🎟️','TTD · Things to Do',ind.ttd.valid,ind.ttd.gmv,inc(Dp?D.tv-Dp.tv:0,false),inc(Dp?D.tg-Dp.tg:0,true),scopeLabel)}
+     ${progCard('acc','🏨','ACC · Accommodations',vNow.acc.valid,split.acc.gmv,vPrev?del(vNow.acc.valid,vPrev.acc.valid):{c:'flat',t:''},'',scopeLabel)}
+     ${progCard('ttd','🎟️','TTD · Things to Do',vNow.ttd.valid,split.ttd.gmv,vPrev?del(vNow.ttd.valid,vPrev.ttd.valid):{c:'flat',t:''},'',scopeLabel)}
    </div>
-   <div class="map-hint" style="margin:-6px 2px 16px">Valid = public posts with 300+ views (proxy). TikTok's official count also requires an accurate POI tag and content relevant to the location, which aren't in the export.</div>
+   <div class="map-hint" style="margin:-6px 2px 16px">GMV, orders &amp; AOV are period totals from your latest export (match the GO portal). Valid = public posts with 300+ views in the selected month; TikTok's official valid count also requires an accurate POI tag and on-topic content, which aren't in the export.</div>
 
    <div class="dash-layout">
      <div>
        <div class="card">
-         <div class="card-h"><h3><span class="dt"></span>Paid GMV trend</h3><span class="meta">cumulative · ${scopeLabel}</span></div>
+         <div class="card-h"><h3><span class="dt"></span>Paid GMV trend</h3><span class="meta">cumulative → ${money(K.gmv)}</span></div>
          <div id="gmvChart"></div>
          <div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div>
        </div>
@@ -701,7 +711,7 @@ function renderDash(){
          <div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div>
        </div>
        <div class="card">
-         <div class="card-h"><h3><span class="dt"></span>Daily views</h3><span class="meta">last 30 days · roster</span></div>
+         <div class="card-h"><h3><span class="dt"></span>Daily views</h3><span class="meta">last 30 days</span></div>
          <div id="viewTrend"></div>
        </div>
      </div>
@@ -717,9 +727,8 @@ function renderDash(){
      </div>
    </div>`;
 
-  const labels=daily.map(p=>ymd(p.d));
-  $('#gmvChart').innerHTML=daily.length?multiChart(labels,[{color:'var(--p)',vals:daily.map(p=>p.ag)},{color:'var(--blue)',vals:daily.map(p=>p.tg)}],money):'<div class="muted-note">No data in range.</div>';
-  $('#validChart').innerHTML=daily.length?multiChart(labels,[{color:'var(--p)',vals:daily.map(p=>p.av)},{color:'var(--blue)',vals:daily.map(p=>p.tv)}],fmt):'<div class="muted-note">No posts in range.</div>';
+  $('#gmvChart').innerHTML=dGmv.length?multiChart(dGmv.map(p=>ymd(p.d)),[{color:'var(--p)',vals:dGmv.map(p=>p.ag)},{color:'var(--blue)',vals:dGmv.map(p=>p.tg)}],money):'<div class="muted-note">No data.</div>';
+  $('#validChart').innerHTML=dVal.length?multiChart(dVal.map(p=>ymd(p.d)),[{color:'var(--p)',vals:dVal.map(p=>p.av)},{color:'var(--blue)',vals:dVal.map(p=>p.tv)}],fmt):'<div class="muted-note">No posts in range.</div>';
   renderViewTrend(list);
   renderLeaderboard(list);renderAttention(list);
   polish($('#v-dash'));
@@ -728,8 +737,8 @@ function mini(l,raw,type,d,note){return `<div class="mini"><div class="l">${l}</
 function progCard(cls,ico,title,valid,gmv,dv,dg,scopeLabel){
   return `<div class="progc ${cls==='ttd'?'ttd':''}">
     <div class="pt"><span class="ico">${ico}</span>${title}</div>
-    <div class="gmv">${numSpan(gmv,'money')}</div><div class="gl">Paid GMV · ${scopeLabel} ${dg&&dg.t?`· <span class="${dg.c}">${dg.t}</span>`:''}</div>
-    <div class="vp"><span class="n">${numSpan(valid,'int')}</span><span class="vl">valid posts ${dv&&dv.t?`· <span class="${dv.c}">${dv.t}</span>`:''}</span></div>
+    <div class="gmv">${numSpan(gmv,'money')}</div><div class="gl">Paid GMV · period</div>
+    <div class="vp"><span class="n">${numSpan(valid,'int')}</span><span class="vl">valid · ${scopeLabel.split(' ')[0]} ${dv&&dv.t?`· <span class="${dv.c}">${dv.t}</span>`:''}</span></div>
   </div>`;}
 
 function mLabel(m){if(!m)return'—';const mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mm[+m.slice(4,6)]+' '+m.slice(0,4);}
@@ -1016,8 +1025,11 @@ function matchCity(st,cityRaw){const geo=DB.citygeo&&DB.citygeo[st];if(!geo||!ci
 const LVCOLOR=['#94a3b8','#22d3ee','#34d399','#fb923c','#a855f7'];
 const LVLABEL=['L0','L1','L2','L3','L4'];
 function levelNum(u){const p=DB.profiles[u]||{};const m=/(\d+)/.exec(p.level||'');return m?Math.min(4,Math.max(0,+m[1])):0;}
+let MAP_SCOPE='all';
+function mapUsers(){return MAP_SCOPE==='mine'?[...MANAGED]:allUsers();}
+function setMapScope(s){MAP_SCOPE=s;renderMap();}
 function geoData(){const byState={},pins=[];
-  [...MANAGED].forEach(u=>{const r=DB.roster[u]||{};const st=normState(r.state);if(!st)return;
+  mapUsers().forEach(u=>{const r=DB.roster[u]||{};const st=normState(r.state);if(!st)return;
     (byState[st]=byState[st]||[]).push(u);
     let xy=matchCity(st,r.city);const c=DB.usmap.centroids[st]||[480,300];const j=hash(u);
     if(xy){xy=[xy[0]+((j%14)-7)*0.5,xy[1]+(((j>>8)%14)-7)*0.5];}
@@ -1027,7 +1039,7 @@ function geoData(){const byState={},pins=[];
 function renderMap(){
   if(!DB.usmap){$('#v-map').innerHTML='<div class="muted-note" style="padding-top:60px">Map data not found — make sure <b>usmap.json</b> is in the repo before building.</div>';return;}
   const{byState,pins}=geoData();const counts=Object.fromEntries(Object.entries(byState).map(([s,a])=>[s,a.length]));
-  const max=Math.max(1,...Object.values(counts));const located=[...MANAGED].filter(u=>normState((DB.roster[u]||{}).state)).length;
+  const max=Math.max(1,...Object.values(counts));const located=mapUsers().filter(u=>normState((DB.roster[u]||{}).state)).length;
   const shade=n=>{if(!n)return'var(--bg2)';const a=(0.16+0.66*(n/max)).toFixed(2);return`rgba(249,115,22,${a})`;};
   const paths=Object.entries(DB.usmap.paths).map(([st,d])=>`<path class="st" data-st="${st}" data-has="${counts[st]?1:0}" data-n="${counts[st]||0}" d="${d}" style="fill:${shade(counts[st]||0)}"><title>${STATE_NAMES[st]||st} · ${counts[st]||0}</title></path>`).join('');
   const labels=Object.entries(counts).map(([st,n])=>{const c=DB.usmap.centroids[st];if(!c||!n)return'';const fs=n>=10?13:11;return`<text class="cnt" x="${c[0]}" y="${c[1]+4}" text-anchor="middle" font-size="${fs}">${n}</text>`;}).join('');
@@ -1038,7 +1050,11 @@ function renderMap(){
   $('#v-map').innerHTML=`
    <div class="h-eyebrow">Creator map</div>
    <h1 class="h-title">Where your <em>creators</em> are</h1>
-   <div class="h-sub">${located} of ${MANAGED.size} managed creators located · ${pins.length} on the map · coloured by level · drag to pan · scroll or pinch to zoom</div>
+   <div class="h-sub">${pins.length} creators on the map across ${Object.keys(byState).length} states · coloured by level · drag to pan · scroll or pinch to zoom</div>
+   <div class="seg">
+     <button class="${MAP_SCOPE==='all'?'on':''}" onclick="setMapScope('all')">All creators</button>
+     <button class="${MAP_SCOPE==='mine'?'on':''}" onclick="setMapScope('mine')">My creators · ${MANAGED.size}</button>
+   </div>
    <div class="map-wrap">
      <div class="maptip" id="maptip"></div>
      <button class="night-toggle" id="nightToggle">${dark?'☀️ Day map':'🌙 Night lights'}</button>
@@ -1049,7 +1065,7 @@ function renderMap(){
        <span style="flex-basis:100%;height:0"></span>
        ${lvLegend}
      </div>
-     <div class="map-hint">Dots placed by town where recognizable, otherwise clustered in-state.${dark?' Night mode shows each creator as a glowing city light.':''}</div>
+     <div class="map-hint">${MAP_SCOPE==='mine'&&!pins.length?'Your roster is empty — add creators from the <b>Admin</b> tab, or switch to All creators above.':'Dots placed by town where recognizable, otherwise clustered in-state.'+(dark?' Night mode shows each creator as a glowing city light.':'')}</div>
    </div>`;
   $('#nightToggle').onclick=()=>{setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');renderMap();};
   setupMapZoom();
@@ -1068,7 +1084,9 @@ function setupMapZoom(){
   function vb(cx,cy){const r=svg.getBoundingClientRect();return [(cx-r.left)/r.width*VBW,(cy-r.top)/r.height*VBH];}
   function zoomAt(vx,vy,f,snap){const nk=Math.min(9,Math.max(1,mapK*f));const gx=(vx-mapX)/mapK,gy=(vy-mapY)/mapK;mapK=nk;mapX=vx-mapK*gx;mapY=vy-mapK*gy;apply(snap);}
   apply(false);
-  svg.addEventListener('wheel',e=>{e.preventDefault();const[vx,vy]=vb(e.clientX,e.clientY);zoomAt(vx,vy,e.deltaY<0?1.18:1/1.18,false);},{passive:false});
+  svg.addEventListener('wheel',e=>{e.preventDefault();const[vx,vy]=vb(e.clientX,e.clientY);
+    let dy=e.deltaY;if(e.deltaMode===1)dy*=16;else if(e.deltaMode===2)dy*=400;
+    dy=Math.max(-60,Math.min(60,dy));const f=Math.pow(1.0022,-dy);zoomAt(vx,vy,f,false);},{passive:false});
   const pts=new Map();let last=null,pinchD=0,moved=0;
   svg.addEventListener('pointerdown',e=>{try{svg.setPointerCapture(e.pointerId);}catch(_){}pts.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=0;_mapDragged=false;
     if(pts.size===1){last={x:e.clientX,y:e.clientY};svg.classList.add('grabbing');}

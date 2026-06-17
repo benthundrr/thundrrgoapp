@@ -18,6 +18,7 @@ const OUT = path.join(__dirname, 'data.json');
 
 const norm = s => String(s == null ? '' : s).trim();
 const lc = s => norm(s).toLowerCase();
+const mLabel = m => m ? `${m.slice(0, 4)}-${m.slice(4, 6)}` : '—';
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
 const r2 = n => Math.round(n * 100) / 100;
 const r4 = n => Math.round(n * 10000) / 10000;
@@ -166,17 +167,38 @@ function buildPosts(profiles) {
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-/* Cumulative ACC / TTD valid-post + GMV totals (program-to-date) */
-function buildIndustry(posts, asOf) {
-  const z = () => ({ valid: 0, gmv: 0, posts: 0, views: 0 });
-  const acc = z(), ttd = z();
+/* ACC / TTD: valid posts = current month; Paid GMV = cumulative (accrues) */
+function buildIndustry(posts, asOf, mk) {
+  const acc = { valid: 0, gmv: 0 }, ttd = { valid: 0, gmv: 0 };
+  let totalValid = 0;
   for (const p of posts) {
-    const v = VALID(p);
-    if (p.ind === 'ACC' || p.ind === 'BOTH') { acc.posts++; acc.views += p.views; acc.gmv += p.sales; if (v) acc.valid++; }
-    if (p.ind === 'TTD' || p.ind === 'BOTH') { ttd.posts++; ttd.views += p.views; ttd.gmv += p.sales; if (v) ttd.valid++; }
+    const isAcc = p.ind === 'ACC' || p.ind === 'BOTH', isTtd = p.ind === 'TTD' || p.ind === 'BOTH';
+    if (isAcc) acc.gmv += p.sales;
+    if (isTtd) ttd.gmv += p.sales;
+    if (VALID(p) && p.date.slice(0, 6) === mk) {
+      if (isAcc) acc.valid++;
+      if (isTtd) ttd.valid++;
+      totalValid++;                 // deduped (counts an ACC,TTD post once)
+    }
   }
   acc.gmv = r2(acc.gmv); ttd.gmv = r2(ttd.gmv);
-  return { asOf, acc, ttd };
+  return { asOf, monthKey: mk, acc, ttd, totalValid };
+}
+
+/* Daily series: cumulative Paid GMV (all posts) + cumulative month valid posts */
+function buildDaily(posts, mk) {
+  const by = {};
+  for (const p of posts) {
+    const d = by[p.date] = by[p.date] || { ag: 0, tg: 0, av: 0, tv: 0 };
+    const isAcc = p.ind === 'ACC' || p.ind === 'BOTH', isTtd = p.ind === 'TTD' || p.ind === 'BOTH';
+    if (isAcc) d.ag += p.sales;
+    if (isTtd) d.tg += p.sales;
+    if (VALID(p) && p.date.slice(0, 6) === mk) { if (isAcc) d.av++; if (isTtd) d.tv++; }
+  }
+  const dates = Object.keys(by).sort();
+  let ag = 0, tg = 0, av = 0, tv = 0; const out = [];
+  for (const dt of dates) { const x = by[dt]; ag += x.ag; tg += x.tg; av += x.av; tv += x.tv; out.push({ d: dt, ag: r2(ag), tg: r2(tg), av, tv }); }
+  return out;
 }
 
 /* Agency benchmarks for the coaching engine */
@@ -209,8 +231,13 @@ function main() {
   const posts = buildPosts(profiles);
 
   const latest = snapshots[snapshots.length - 1] || { start: '', end: '', byUser: {} };
-  const industry = buildIndustry(posts, latest.end);
+  const mk = (latest.end || (posts.length ? posts[posts.length - 1].date : '')).slice(0, 6);
+  const industry = buildIndustry(posts, latest.end, mk);
+  const daily = buildDaily(posts, mk);
   const benchmarks = buildBenchmarks(posts, latest);
+  const readJSON = f => { try { return JSON.parse(fs.readFileSync(path.join(__dirname, f), 'utf8')); } catch (e) { return null; } };
+  const usmap = readJSON('usmap.json');
+  const citygeo = readJSON('citygeo.json');
   const out = {
     generatedAt: new Date().toISOString(),
     dataRange: { start: latest.start, end: latest.end },
@@ -220,13 +247,14 @@ function main() {
       snapshots: snapshots.length,
       posts: posts.length
     },
-    industry, benchmarks,
+    industry, daily, benchmarks, usmap, citygeo,
     profiles, roster, snapshots, posts
   };
   fs.writeFileSync(OUT, JSON.stringify(out));
   console.log('[build] data.json',
-    `· profiles ${out.counts.profiles} · roster ${out.counts.roster} · posts ${out.counts.posts}`,
-    `· ACC ${industry.acc.valid} valid/$${industry.acc.gmv} · TTD ${industry.ttd.valid} valid/$${industry.ttd.gmv}`,
+    `· profiles ${out.counts.profiles} · posts ${out.counts.posts}`,
+    `· ${mLabel(mk)} valid: ACC ${industry.acc.valid} / TTD ${industry.ttd.valid} (${industry.totalValid} total)`,
+    `· GMV: ACC $${industry.acc.gmv} / TTD $${industry.ttd.gmv}`,
     `· ${(fs.statSync(OUT).size / 1024).toFixed(0)}kb`);
 }
 main();

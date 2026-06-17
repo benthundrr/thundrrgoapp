@@ -271,12 +271,12 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
 .verdict.ok{color:var(--green);background:var(--green-bg)}.verdict.low{color:var(--red);background:var(--red-bg)}.verdict.mid{color:var(--gold);background:var(--gold-bg)}
 
 /* bottom nav (mobile) */
-.nav{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:120;display:none;gap:3px;
+.nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:120;display:none;gap:1px;
   padding:5px;border-radius:100px;background:var(--glass);border:1px solid var(--br);box-shadow:var(--slg);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.navb{border:none;background:none;color:var(--mu);font-weight:800;font-size:12px;padding:9px 16px;border-radius:100px;display:flex;align-items:center;gap:6px;transition:color .2s,background .2s}
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);max-width:96vw}
+.navb{border:none;background:none;color:var(--mu);font-weight:800;font-size:11px;padding:8px 11px;border-radius:100px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s,background .2s;white-space:nowrap}
 .navb.on{color:#fff;background:linear-gradient(135deg,var(--p),var(--pd));box-shadow:0 6px 16px var(--pb)}
-.navb .ni{font-size:14px}
+.navb .ni{font-size:15px}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);z-index:400;
   background:var(--fg);color:var(--bg);font-weight:800;font-size:13px;padding:11px 20px;border-radius:100px;box-shadow:var(--slg);opacity:0;pointer-events:none;transition:.3s}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -300,6 +300,94 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
   body,#app{background:#fff}
   .report{box-shadow:none;border:none}
   .main{padding:0;max-width:100%}
+}
+
+/* MAP */
+.map-wrap{position:relative;background:var(--card);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--smd);padding:14px;overflow:hidden}
+.usmap{width:100%;height:auto;display:block;touch-action:manipulation}
+.usmap path.st{fill:var(--bg2);stroke:var(--br);stroke-width:.8;cursor:pointer;transition:fill .18s,stroke .18s,filter .18s}
+.usmap path.st:hover{stroke:var(--p);stroke-width:1.4;filter:brightness(1.04)}
+.usmap path.st.sel{stroke:var(--p);stroke-width:2}
+.usmap .cnt{font-weight:900;fill:#fff;paint-order:stroke;stroke:rgba(0,0,0,.25);stroke-width:.5px;pointer-events:none}
+.usmap .pin{fill:var(--p);opacity:.85;pointer-events:none}
+.usmap .pin.ttd{fill:var(--blue)}
+.map-legend{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;font-size:11px;font-weight:700;color:var(--mu)}
+.scale-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;width:120px}
+.scale-bar i{flex:1}
+.map-hint{font-size:12px;font-weight:600;color:var(--mu);margin-top:4px}
+.maptip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;opacity:0;transform:translateY(4px);transition:opacity .12s;z-index:6;white-space:nowrap;box-shadow:var(--smd)}
+.maptip.show{opacity:1;transform:none}
+
+/* state drawer */
+.drawer-scrim{position:fixed;inset:0;z-index:150;background:rgba(20,12,4,.45);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s}
+.drawer-scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:92vw;z-index:160;background:var(--card);border-left:1px solid var(--br);
+  box-shadow:var(--slg);transform:translateX(102%);transition:transform .34s cubic-bezier(.4,0,.15,1);display:flex;flex-direction:column}
+.drawer.open{transform:none}
+.drawer-head{padding:20px 22px 16px;border-bottom:1px solid var(--br);position:relative;flex:0 0 auto}
+.drawer-head::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--p),#fbbf24)}
+.drawer-head h2{font-size:24px;font-weight:900;letter-spacing:-.03em;display:flex;align-items:center;gap:10px}
+.drawer-head .stsub{font-size:12.5px;font-weight:700;color:var(--mu);margin-top:3px}
+.drawer-x{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:10px;border:1px solid var(--br);background:var(--bg2);color:var(--fg);font-size:15px}
+.drawer-x:hover{border-color:var(--p);color:var(--p)}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 18px 28px;-webkit-overflow-scrolling:touch}
+.drawer-actions{display:flex;gap:8px;margin-bottom:14px}
+.dc{background:var(--card2);border:1px solid var(--br);border-radius:14px;padding:14px;margin-bottom:11px;animation:dcIn .3s ease both}
+@keyframes dcIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.dc-top{display:flex;gap:11px;align-items:center;margin-bottom:10px}
+.dc-top .av{width:40px;height:40px;border-radius:11px;flex:0 0 40px;font-size:15px}
+.dc-name{font-weight:900;font-size:14.5px;line-height:1.15}
+.dc-handle{font-size:11.5px;font-weight:600;color:var(--mu)}
+.dc-field{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px solid var(--br)}
+.dc-field .ci{width:22px;flex:0 0 22px;text-align:center;color:var(--p);font-size:13px}
+.dc-field .ck{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mul)}
+.dc-field .cv{font-size:12.5px;font-weight:700;word-break:break-word}
+.dc-field .cpy{margin-left:auto;font-size:10.5px;font-weight:800;color:var(--p);border:1px solid var(--br);background:var(--bg2);border-radius:7px;padding:4px 8px;flex:0 0 auto}
+.dc-field .cpy:hover{border-color:var(--p)}
+.dc-stat{display:flex;gap:14px;margin-top:9px;padding-top:9px;border-top:1px solid var(--br)}
+.dc-stat .v{font-weight:900;font-size:13px}.dc-stat .l{font-size:9px;font-weight:800;text-transform:uppercase;color:var(--mul)}
+/* shimmer skeleton */
+.sk{background:var(--card2);border:1px solid var(--br);border-radius:14px;padding:14px;margin-bottom:11px}
+.sk .bar{height:12px;border-radius:6px;margin:7px 0;background:linear-gradient(90deg,var(--br) 25%,var(--bg2) 37%,var(--br) 63%);background-size:400% 100%;animation:shim 1.2s ease infinite}
+.sk .bar.s{width:55%}.sk .bar.m{width:80%}.sk .av{width:40px;height:40px;border-radius:11px;background:linear-gradient(90deg,var(--br) 25%,var(--bg2) 37%,var(--br) 63%);background-size:400% 100%;animation:shim 1.2s ease infinite}
+@keyframes shim{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* WEBINARS */
+.deck-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.deckc{position:relative;background:var(--card);border:1px solid var(--br);border-radius:var(--r);box-shadow:var(--smd);padding:0;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
+.deckc:hover{transform:translateY(-4px);box-shadow:var(--slg);border-color:var(--pb)}
+.deckc .deck-cover{height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.deckc .deck-cover .lvl{font-family:'Instrument Serif',serif;font-style:italic;font-size:56px;color:#fff;z-index:2;text-shadow:0 4px 24px rgba(0,0,0,.3)}
+.deck-cover.l0{background:linear-gradient(135deg,#f97316,#ea580c)}
+.deck-cover.l1{background:linear-gradient(135deg,#2563eb,#0ea5e9)}
+.deck-cover.l2{background:linear-gradient(135deg,#b45309,#f59e0b)}
+.deckc .deck-body{padding:16px 18px}
+.deckc .deck-k{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--p)}
+.deckc .deck-t{font-size:17px;font-weight:900;letter-spacing:-.02em;margin:3px 0 6px}
+.deckc .deck-d{font-size:12.5px;font-weight:600;color:var(--mu);line-height:1.45}
+.deckc .deck-go{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12.5px;font-weight:800;color:var(--p)}
+
+/* PRESENTER */
+.present{position:fixed;inset:0;z-index:500;background:rgba(8,5,3,.94);backdrop-filter:blur(8px);display:none;flex-direction:column}
+.present.open{display:flex;animation:ovIn .2s ease}
+.present-top{display:flex;align-items:center;gap:14px;padding:12px 18px;color:#fff;flex:0 0 auto;z-index:3}
+.present-title{font-weight:800;font-size:14px;letter-spacing:.01em}
+.present-count{font-weight:800;font-size:13px;color:rgba(255,255,255,.6);margin-left:auto}
+.present-close{width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;font-size:17px}
+.present-close:hover{background:rgba(255,255,255,.14)}
+.present-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:0 16px 18px;min-height:0}
+#presFrame{width:100%;height:100%;border:none;border-radius:14px;background:#000;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.present-arrow{position:fixed;top:50%;transform:translateY(-50%);z-index:4;width:52px;height:52px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s}
+.present-arrow:hover{background:rgba(249,115,22,.85);transform:translateY(-50%) scale(1.06)}
+.present-arrow:disabled{opacity:.25;pointer-events:none}
+.present-arrow.left{left:14px}.present-arrow.right{right:14px}
+
+@media(max-width:880px){.dash-layout{grid-template-columns:1fr}}
+@media(max-width:720px){
+  .present-arrow{width:42px;height:42px;font-size:24px}
+  .present-arrow.left{left:6px}.present-arrow.right{right:6px}
+  .present-stage{padding:0 4px 10px}
 }
 </style>
 </head>
@@ -332,6 +420,8 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
       <button class="tab-btn active" data-v="dash">◧ Dashboard</button>
       <button class="tab-btn" data-v="roster">☷ Roster</button>
       <button class="tab-btn" data-v="coach">✦ Coaching</button>
+      <button class="tab-btn" data-v="map">⌖ Map</button>
+      <button class="tab-btn" data-v="webinars">▶ Webinars</button>
     </div>
   </div>
 
@@ -342,6 +432,10 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
     <section class="view" id="v-roster"></section>
     <!-- COACHING -->
     <section class="view" id="v-coach"></section>
+    <!-- MAP -->
+    <section class="view" id="v-map"></section>
+    <!-- WEBINARS -->
+    <section class="view" id="v-webinars"></section>
   </div>
 </div>
 
@@ -351,14 +445,31 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
   <button class="navb on" data-v="dash"><span class="ni">◧</span>Dash</button>
   <button class="navb" data-v="roster"><span class="ni">☷</span>Roster</button>
   <button class="navb" data-v="coach"><span class="ni">✦</span>Coach</button>
+  <button class="navb" data-v="map"><span class="ni">⌖</span>Map</button>
+  <button class="navb" data-v="webinars"><span class="ni">▶</span>Decks</button>
 </div>
+
+<div class="drawer-scrim" id="drawerScrim"></div>
+<aside class="drawer" id="stateDrawer"></aside>
+
+<div class="present" id="present">
+  <div class="present-top">
+    <div class="present-title" id="presTitle"></div>
+    <div class="present-count" id="presCount"></div>
+    <button class="present-close" onclick="closeDeck()" title="Close (Esc)">✕</button>
+  </div>
+  <button class="present-arrow left" id="presPrev" onclick="deckNav(-1)" title="Previous">‹</button>
+  <div class="present-stage"><iframe id="presFrame" title="Webinar"></iframe></div>
+  <button class="present-arrow right" id="presNext" onclick="deckNav(1)" title="Next">›</button>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const LS={auth:'tgo_auth',theme:'tgo_theme',managed:'tgo_managed',log:'tgo_log'};
+const LS={auth:'tgo_auth',theme:'tgo_theme',managed:'tgo_managed'};
 const CRED={u:'ben',p:'ben123'};
-let DB=null,MANAGED=new Set(),LOG={},CUR='dash';
+let DB=null,MANAGED=new Set(),CUR='dash';
 
 /* utils */
 const fmt=n=>{n=+n||0;const a=Math.abs(n);if(a>=1e6)return(n/1e6).toFixed(a>=1e7?0:1)+'M';if(a>=1e3)return(n/1e3).toFixed(a>=1e4?0:1)+'K';return Math.round(n).toString();};
@@ -405,9 +516,8 @@ async function boot(){
   const saved=localStorage.getItem(LS.managed);
   if(saved)MANAGED=new Set(JSON.parse(saved));
   else{const snap=latestSnap().byUser;let s=Object.keys(DB.roster||{}).filter(u=>snap[u]||(IDX.byUser[u]&&IDX.byUser[u].posts.length));if(!s.length)s=Object.keys(DB.roster||{});if(!s.length)s=Object.keys(snap);MANAGED=new Set(s);saveManaged();}
-  initLog();
   $('#rangeTag').textContent=DB.dataRange.end?`data thru ${ymd(DB.dataRange.end)}`:'';
-  renderDash();renderRoster();renderCoach();
+  renderDash();renderRoster();renderCoach();renderMap();renderWebinars();
 }
 const saveManaged=()=>localStorage.setItem(LS.managed,JSON.stringify([...MANAGED]));
 const latestSnap=()=>DB.snapshots.at(-1)||{byUser:{}};
@@ -427,59 +537,49 @@ function index(){const byUser={},mset=new Set();
 function rec(u){const prof=DB.profiles[u]||{},ro=DB.roster[u]||{},snap=snapFor(u),ux=IDX.byUser[u]||{posts:[],months:{},days:{},acc:0,ttd:0};
   return{u,name:ro.name||prof.name||u,prof,ro,snap,ux};}
 
-/* daily program log */
-function initLog(){LOG=JSON.parse(localStorage.getItem(LS.log)||'{}');
-  if(!LOG['20260615'])LOG['20260615']={av:306,ag:12857,tv:576,tg:2039,src:'official'};
-  const ind=DB.industry;if(ind&&ind.asOf){const k=ind.asOf;if(!LOG[k]||LOG[k].src==='computed')
-    LOG[k]={av:ind.acc.valid,ag:ind.acc.gmv,tv:ind.ttd.valid,tg:ind.ttd.gmv,src:'computed'};}
-  saveLog();}
-const saveLog=()=>localStorage.setItem(LS.log,JSON.stringify(LOG));
-const logDates=()=>Object.keys(LOG).sort();
-
 /* ---------------- DASHBOARD ---------------- */
 function renderDash(){
-  const list=[...MANAGED],dates=logDates(),last=dates.at(-1),prev=dates.at(-2);
-  const L=LOG[last]||{av:0,ag:0,tv:0,tg:0},P=prev?LOG[prev]:null;
-  // managed aggregates
-  let gmv=0,cV=0,cP=0,pV=0,pP=0,active=0;
-  list.forEach(u=>{const s=snapFor(u);if(s)gmv+=s.sales;const ux=IDX.byUser[u];if(!ux)return;
-    const c=ux.months[IDX.curMonth],pp=ux.months[IDX.prevMonth];if(c){cV+=c.views;cP+=c.posts;active++;}if(pp){pV+=pp.views;pP+=pp.posts;}});
-  const totalValid=L.av+L.tv;
+  const list=[...MANAGED],ind=DB.industry||{acc:{valid:0,gmv:0},ttd:{valid:0,gmv:0},totalValid:0,monthKey:IDX.curMonth};
+  const daily=DB.daily||[],D=daily.at(-1)||{ag:0,tg:0,av:0,tv:0},Dp=daily.at(-2)||null;
+  const mk=ind.monthKey||IDX.curMonth;
+  // managed monthly aggregates (views/posts/active)
+  let cV=0,cP=0,pV=0,pP=0,active=0;
+  list.forEach(u=>{const ux=IDX.byUser[u];if(!ux)return;const c=ux.months[mk],pp=ux.months[IDX.prevMonth];
+    if(c){cV+=c.views;cP+=c.posts;active++;}if(pp){pV+=pp.views;pP+=pp.posts;}});
   const del=(c,p)=>{if(p==null||!p)return{c:'flat',t:''};const d=(c-p)/p*100;return{c:d>0.5?'up':d<-0.5?'down':'flat',t:(d>0?'▲':d<0?'▼':'•')+Math.abs(d).toFixed(0)+'%'};};
-  const dGmv=P?del(L.ag+L.tg,P.ag+P.tg):{c:'flat',t:''},dVal=P?del(totalValid,P.av+P.tv):{c:'flat',t:''};
-  const dv=del(cV,pV),dp=del(cP,pP);
+  const inc=(n,m)=>{if(!Dp||!n)return{c:'flat',t:''};return{c:n>0?'up':'down',t:(n>0?'▲ +':'▼ ')+(m?money(Math.abs(n)):fmt(Math.abs(n)))+' today'};};
+  const totGmv=ind.acc.gmv+ind.ttd.gmv;
+  const gmvInc=inc((D.ag+D.tg)-(Dp?Dp.ag+Dp.tg:0),true);
+  const valInc=inc((D.av+D.tv)-(Dp?Dp.av+Dp.tv:0),false);
 
   $('#v-dash').innerHTML=`
    <div class="h-eyebrow">TikTok GO · Program</div>
    <h1 class="h-title">Program <em>dashboard</em></h1>
-   <div class="h-sub">${list.length} managed creators · ${active} active in ${mLabel(IDX.curMonth)} · figures as of ${ymd(last)}</div>
+   <div class="h-sub">${list.length} managed creators · ${active} active in ${mLabel(mk)} · figures as of ${ymd(ind.asOf||DB.dataRange.end)}</div>
 
    <div class="mini-stats">
-     ${mini('Paid GMV',money(L.ag+L.tg),dGmv,'ACC + TTD')}
-     ${mini('Valid posts',fmt(totalValid),dVal,'300+ views · 15s+')}
-     ${mini('Roster views',fmt(cV),dv,mLabel(IDX.curMonth))}
-     ${mini('Posts',fmt(cP),dp,mLabel(IDX.curMonth))}
+     ${mini('Paid GMV',money(totGmv),gmvInc,'ACC + TTD · to date')}
+     ${mini('Valid posts',fmt(ind.totalValid),valInc,`${ind.acc.valid} ACC · ${ind.ttd.valid} TTD`)}
+     ${mini('Roster views',fmt(cV),del(cV,pV),mLabel(mk))}
+     ${mini('Posts',fmt(cP),del(cP,pP),mLabel(mk))}
    </div>
 
    <div class="prog">
-     ${progCard('acc','🏨','ACC · Accommodations',L.av,L.ag,P?del(L.av,P.av):null,P?del(L.ag,P.ag):null)}
-     ${progCard('ttd','🎟️','TTD · Things to Do',L.tv,L.tg,P?del(L.tv,P.tv):null,P?del(L.tg,P.tg):null)}
+     ${progCard('acc','🏨','ACC · Accommodations',ind.acc.valid,ind.acc.gmv,inc(Dp?D.av-Dp.av:0,false),inc(Dp?D.ag-Dp.ag:0,true),mk)}
+     ${progCard('ttd','🎟️','TTD · Things to Do',ind.ttd.valid,ind.ttd.gmv,inc(Dp?D.tv-Dp.tv:0,false),inc(Dp?D.tg-Dp.tg:0,true),mk)}
    </div>
 
    <div class="dash-layout">
      <div>
        <div class="card">
-         <div class="card-h"><h3><span class="dt"></span>Paid GMV trend</h3><span class="meta">per logged day · ACC + TTD</span></div>
+         <div class="card-h"><h3><span class="dt"></span>Paid GMV trend</h3><span class="meta">cumulative · ACC + TTD</span></div>
          <div id="gmvChart"></div>
          <div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div>
        </div>
        <div class="card">
-         <div class="card-h"><h3><span class="dt"></span>Log daily figures</h3><span class="meta">official portal numbers override computed</span></div>
-         <div class="logbar" style="margin-bottom:12px"><label class="logf" style="flex:0 0 auto"><span style="font-size:10px;font-weight:800;text-transform:uppercase;color:var(--mu)">Date</span><input type="date" id="logDate" value="${iso(last)}"></label></div>
-         <div class="logrow">
-           ${logField('ACC valid','lAv')}${logField('ACC paid GMV','lAg')}${logField('TTD valid','lTv')}${logField('TTD paid GMV','lTg')}
-         </div>
-         <div class="logbar"><button class="save" id="logSave">Save as official</button><button class="ghost" id="logReset">Reset day to computed</button><span class="meta" id="logSrc"></span></div>
+         <div class="card-h"><h3><span class="dt"></span>Valid posts · ${mLabel(mk)}</h3><span class="meta">300+ views · 15s+</span></div>
+         <div id="validChart"></div>
+         <div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div>
        </div>
        <div class="card">
          <div class="card-h"><h3><span class="dt"></span>Daily views</h3><span class="meta">last 30 days · roster</span></div>
@@ -498,36 +598,20 @@ function renderDash(){
      </div>
    </div>`;
 
-  // charts
-  $('#gmvChart').innerHTML=multiChart(dates.map(ymd),[
-    {color:'var(--p)',vals:dates.map(d=>LOG[d].ag)},
-    {color:'var(--blue)',vals:dates.map(d=>LOG[d].tg)}],money);
+  const labels=daily.map(p=>ymd(p.d));
+  $('#gmvChart').innerHTML=daily.length?multiChart(labels,[{color:'var(--p)',vals:daily.map(p=>p.ag)},{color:'var(--blue)',vals:daily.map(p=>p.tg)}],money):'<div class="muted-note">No data.</div>';
+  const mdays=daily.filter(p=>p.d.slice(0,6)===mk);
+  $('#validChart').innerHTML=mdays.length?multiChart(mdays.map(p=>ymd(p.d)),[{color:'var(--p)',vals:mdays.map(p=>p.av)},{color:'var(--blue)',vals:mdays.map(p=>p.tv)}],fmt):'<div class="muted-note">No posts this month.</div>';
   renderViewTrend(list);
   renderLeaderboard(list);renderAttention(list);
-  // log wiring
-  fillLog(last);
-  $('#logDate').onchange=e=>fillLog(fromIso(e.target.value));
-  $('#logSave').onclick=saveDayLog;
-  $('#logReset').onclick=resetDayLog;
 }
 function mini(l,v,d,note){return `<div class="mini"><div class="l">${l}</div><div class="v">${v}</div><div class="d ${d.c}">${d.t} <span class="flat" style="font-weight:700">${note}</span></div></div>`;}
-function progCard(cls,ico,title,valid,gmv,dv,dg){
+function progCard(cls,ico,title,valid,gmv,dv,dg,mk){
   return `<div class="progc ${cls==='ttd'?'ttd':''}">
     <div class="pt"><span class="ico">${ico}</span>${title}</div>
-    <div class="gmv">${money(gmv)}</div><div class="gl">Paid GMV ${dg?`· <span class="${dg.c}">${dg.t}</span>`:''}</div>
-    <div class="vp"><span class="n">${fmt(valid)}</span><span class="vl">valid posts ${dv&&dv.t?`· <span class="${dv.c}">${dv.t}</span>`:''}</span></div>
+    <div class="gmv">${money(gmv)}</div><div class="gl">Paid GMV · to date ${dg&&dg.t?`· <span class="${dg.c}">${dg.t}</span>`:''}</div>
+    <div class="vp"><span class="n">${fmt(valid)}</span><span class="vl">valid posts · ${mLabel(mk).split(' ')[0]} ${dv&&dv.t?`· <span class="${dv.c}">${dv.t}</span>`:''}</span></div>
   </div>`;}
-function logField(l,id){return `<div class="logf"><label>${l}</label><input type="number" id="${id}" inputmode="decimal"></div>`;}
-function fillLog(date){const e=LOG[date]||{av:'',ag:'',tv:'',tg:'',src:''};
-  $('#lAv').value=e.av;$('#lAg').value=e.ag;$('#lTv').value=e.tv;$('#lTg').value=e.tg;
-  $('#logSrc').textContent=e.src?(e.src==='official'?'logged official':'auto-computed'):'no entry yet';
-  $('#logDate').dataset.k=date;}
-function saveDayLog(){const k=$('#logDate').dataset.k||fromIso($('#logDate').value);
-  LOG[k]={av:+$('#lAv').value||0,ag:+$('#lAg').value||0,tv:+$('#lTv').value||0,tg:+$('#lTg').value||0,src:'official'};
-  saveLog();renderDash();toast('Saved '+ymd(k));}
-function resetDayLog(){const k=$('#logDate').dataset.k||fromIso($('#logDate').value);
-  if(DB.industry&&DB.industry.asOf===k){const i=DB.industry;LOG[k]={av:i.acc.valid,ag:i.acc.gmv,tv:i.ttd.valid,tg:i.ttd.gmv,src:'computed'};}
-  else delete LOG[k];saveLog();renderDash();toast('Reset '+ymd(k));}
 
 function mLabel(m){if(!m)return'—';const mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mm[+m.slice(4,6)]+' '+m.slice(0,4);}
 function renderViewTrend(list){const map={};list.forEach(u=>{const ux=IDX.byUser[u];if(!ux)return;Object.entries(ux.days).forEach(([d,v])=>map[d]=(map[d]||0)+v.views);});
@@ -584,7 +668,7 @@ function renderRoster(){
   $('#filterInp').addEventListener('input',drawRosterGrid);
   drawRosterGrid();
 }
-function refreshAll(){renderDash();renderRoster();renderCoach();}
+function refreshAll(){renderDash();renderRoster();renderCoach();renderMap();}
 function addUsernames(raw){const parts=raw.split(/[\s,;\n]+/).map(s=>s.replace(/^@/,'').trim().toLowerCase()).filter(Boolean);
   let a=0;parts.forEach(u=>{if(!MANAGED.has(u)){MANAGED.add(u);a++;}});if(a){saveManaged();refreshAll();}toast(a?`Added ${a}`:'Already in roster');}
 function drawRosterGrid(){const q=($('#filterInp')&&$('#filterInp').value||'').trim().toLowerCase();
@@ -737,6 +821,116 @@ function coachFor(u){if(CUR!=='coach')go('coach');closeModal();
     </div></div>`;
   window.scrollTo({top:0});
 }
+
+/* ---------------- MAP ---------------- */
+const STATE_NAMES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};
+const NAME_TO_ST=(()=>{const m={};for(const k in STATE_NAMES)m[STATE_NAMES[k].toLowerCase()]=k;m['washington dc']='DC';m['washington d.c.']='DC';m['d.c.']='DC';return m;})();
+function normState(s){if(!s)return'';s=String(s).trim();if(/^[A-Za-z]{2}$/.test(s)){const u=s.toUpperCase();return STATE_NAMES[u]?u:'';}return NAME_TO_ST[s.toLowerCase().replace(/\./g,'').replace(/\s+/g,' ').trim()]||'';}
+const hash=s=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+function matchCity(st,cityRaw){const geo=DB.citygeo&&DB.citygeo[st];if(!geo||!cityRaw)return null;
+  const c=cityRaw.toLowerCase();const names=Object.keys(geo).sort((a,b)=>b.length-a.length);
+  for(const nm of names){if(nm.length<4)continue;
+    if(nm.includes(' ')){if(c.includes(nm))return geo[nm];}
+    else{if(new RegExp('\\b'+nm.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(c))return geo[nm];}}
+  return null;}
+function geoData(){const byState={},pins=[];
+  [...MANAGED].forEach(u=>{const r=DB.roster[u]||{};const st=normState(r.state);if(!st)return;
+    (byState[st]=byState[st]||[]).push(u);
+    const ux=IDX.byUser[u];const ttd=ux&&ux.ttd>ux.acc;
+    let xy=matchCity(st,r.city);const c=DB.usmap.centroids[st]||[480,300];const j=hash(u);
+    if(xy){xy=[xy[0]+((j%14)-7)*0.5,xy[1]+(((j>>8)%14)-7)*0.5];}
+    else{xy=[c[0]+((j%40)-20)*0.7,c[1]+(((j>>8)%40)-20)*0.7];}
+    pins.push({u,x:xy[0],y:xy[1],ttd});});
+  return{byState,pins};}
+function renderMap(){
+  if(!DB.usmap){$('#v-map').innerHTML='<div class="muted-note" style="padding-top:60px">Map data not found — make sure <b>usmap.json</b> is in the repo before building.</div>';return;}
+  const{byState,pins}=geoData();const counts=Object.fromEntries(Object.entries(byState).map(([s,a])=>[s,a.length]));
+  const max=Math.max(1,...Object.values(counts));const located=[...MANAGED].filter(u=>normState((DB.roster[u]||{}).state)).length;
+  const shade=n=>{if(!n)return'var(--bg2)';const a=(0.16+0.66*(n/max)).toFixed(2);return`rgba(249,115,22,${a})`;};
+  const paths=Object.entries(DB.usmap.paths).map(([st,d])=>`<path class="st" data-st="${st}" d="${d}" style="fill:${shade(counts[st]||0)}"><title>${STATE_NAMES[st]||st} · ${counts[st]||0}</title></path>`).join('');
+  const labels=Object.entries(counts).map(([st,n])=>{const c=DB.usmap.centroids[st];if(!c||!n)return'';const fs=n>=10?13:11;return`<text class="cnt" x="${c[0]}" y="${c[1]+4}" text-anchor="middle" font-size="${fs}">${n}</text>`;}).join('');
+  const dots=pins.map(p=>`<circle class="pin ${p.ttd?'ttd':''}" cx="${p.x}" cy="${p.y}" r="2.6"></circle>`).join('');
+  $('#v-map').innerHTML=`
+   <div class="h-eyebrow">Creator map</div>
+   <h1 class="h-title">Where your <em>creators</em> are</h1>
+   <div class="h-sub">${located} of ${MANAGED.size} managed creators located · ${pins.filter(p=>1).length} on the map · tap a state for contacts</div>
+   <div class="map-wrap">
+     <div class="maptip" id="maptip"></div>
+     <svg class="usmap" viewBox="${DB.usmap.viewBox}" id="usSvg">${paths}<g>${dots}</g>${labels}</svg>
+     <div class="map-legend">
+       <span>Fewer</span><div class="scale-bar"><i style="background:rgba(249,115,22,.16)"></i><i style="background:rgba(249,115,22,.4)"></i><i style="background:rgba(249,115,22,.6)"></i><i style="background:rgba(249,115,22,.82)"></i></div><span>More</span>
+       <span style="margin-left:auto"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--p);margin-right:5px"></span>ACC creator</span>
+       <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);margin-right:5px"></span>TTD creator</span>
+     </div>
+     <div class="map-hint">Dots placed by town where recognizable, otherwise clustered in-state.</div>
+   </div>`;
+  const svg=$('#usSvg'),tip=$('#maptip'),wrap=svg.closest('.map-wrap');
+  $$('#usSvg path.st').forEach(p=>{const st=p.dataset.st,n=counts[st]||0;
+    p.onclick=()=>{if(n)openStatePanel(st);else toast(`No managed creators in ${STATE_NAMES[st]||st}`);};
+    p.onmousemove=e=>{const r=wrap.getBoundingClientRect();tip.textContent=`${STATE_NAMES[st]||st} · ${n}`;tip.style.left=(e.clientX-r.left+12)+'px';tip.style.top=(e.clientY-r.top+12)+'px';tip.classList.add('show');};
+    p.onmouseleave=()=>tip.classList.remove('show');});
+}
+function openStatePanel(st){const users=(geoData().byState[st]||[]).map(rec).sort((a,b)=>(b.snap?b.snap.sales:0)-(a.snap?a.snap.sales:0));
+  $$('#usSvg path.st').forEach(p=>p.classList.toggle('sel',p.dataset.st===st));
+  $('#drawerScrim').classList.add('open');$('#stateDrawer').classList.add('open');document.body.style.overflow='hidden';
+  const D=$('#stateDrawer');
+  D.innerHTML=`<div class="drawer-head"><button class="drawer-x" onclick="closeDrawer()">✕</button>
+     <h2>⌖ ${STATE_NAMES[st]||st}</h2><div class="stsub">${users.length} managed creator${users.length!==1?'s':''}</div></div>
+     <div class="drawer-body" id="drawerBody">${'<div class="sk"><div style="display:flex;gap:11px;align-items:center"><div class="av"></div><div style="flex:1"><div class="bar s"></div><div class="bar m"></div></div></div><div class="bar"></div><div class="bar m"></div></div>'.repeat(Math.min(4,Math.max(2,users.length)))}</div>`;
+  setTimeout(()=>{const body=$('#drawerBody');if(!body)return;
+    body.innerHTML=`<div class="drawer-actions"><button class="save" style="flex:1" onclick="copyState('${st}')">⎘ Copy all contacts</button></div>`+
+      users.map(r=>{const s=r.snap;const loc=r.ro.city||'';
+        const F=[['✉','Email',r.ro.email],['☎','Phone',r.ro.phone],['◈','Discord',r.ro.discord],['◉','Manager',r.ro.manager]].filter(x=>x[2])
+          .map(([ic,k,v])=>`<div class="dc-field"><span class="ci">${ic}</span><div style="min-width:0"><div class="ck">${k}</div><div class="cv">${esc(v)}</div></div><button class="cpy" data-cp="${esc(v)}">copy</button></div>`).join('');
+        const stat=s?`<div class="dc-stat"><div><div class="v">${money(s.sales)}</div><div class="l">GMV</div></div><div><div class="v">${fmt(s.views)}</div><div class="l">Views</div></div><div><div class="v">${s.orders}</div><div class="l">Orders</div></div></div>`:'';
+        return `<div class="dc"><div class="dc-top"><div class="av">${initials(r.name)}</div><div style="min-width:0"><div class="dc-name">${esc(r.name)}</div><div class="dc-handle">@${esc(r.u)}${loc?` · ${esc(loc)}`:''}</div></div></div>${F||'<div class="dc-handle">No contact details on file.</div>'}${stat}<div class="dc-field" style="border-top:1px solid var(--br)"><span class="ci">↗</span><div style="min-width:0"><div class="ck">Profile</div></div><button class="cpy" onclick="closeDrawer();openProfile('${esc(r.u)}')">open</button></div></div>`;}).join('');
+    $$('#drawerBody .cpy[data-cp]').forEach(b=>b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(b.dataset.cp);toast('Copied');});
+  },480);
+}
+function copyState(st){const users=(geoData().byState[st]||[]).map(rec).sort((a,b)=>(b.snap?b.snap.sales:0)-(a.snap?a.snap.sales:0));
+  const txt=users.map(r=>[`${r.name} (@${r.u})`,r.ro.city?`Location: ${r.ro.city}, ${st}`:`State: ${st}`,r.ro.email?`Email: ${r.ro.email}`:'',r.ro.phone?`Phone: ${r.ro.phone}`:'',r.ro.discord?`Discord: ${r.ro.discord}`:'',r.ro.manager?`Manager: ${r.ro.manager}`:'',r.snap?`GMV: ${money(r.snap.sales)} · ${r.snap.orders} orders`:''].filter(Boolean).join('\n')).join('\n\n');
+  navigator.clipboard&&navigator.clipboard.writeText(`${STATE_NAMES[st]||st} — ${users.length} creators\n\n${txt}`);
+  toast(`Copied ${users.length} contacts`);}
+function closeDrawer(){$('#drawerScrim').classList.remove('open');$('#stateDrawer').classList.remove('open');document.body.style.overflow='';$$('#usSvg path.st').forEach(p=>p.classList.remove('sel'));}
+$('#drawerScrim').addEventListener('click',closeDrawer);
+
+/* ---------------- WEBINARS ---------------- */
+const DECKS=[
+  {file:'webinars/L0.html',k:'L0 · Foundation',cls:'l0',glyph:'0',name:'Start at Zero',desc:'$0 → first sale + 10 valid posts. Account setup, navigating the marketplace, what counts as a valid post, and what to film first (lead with ACC).'},
+  {file:'webinars/L1.html',k:'L1 · Momentum',cls:'l1',glyph:'1',name:'Refine Your Craft',desc:'$1K → $5K/mo. Sharper hooks, caption SEO, smart markets, posting cadence by vertical (ACC vs TTD), and reading your own data.'},
+  {file:'webinars/L2.html',k:'L2 · Scale',cls:'l2',glyph:'2',name:'Scale the System',desc:'$5K → $10K/mo. The volume engine, the length sweet spot, owning markets, and a weekly conversion review to make $10K months repeatable.'}
+];
+function renderWebinars(){
+  $('#v-webinars').innerHTML=`
+   <div class="h-eyebrow">Webinars</div>
+   <h1 class="h-title">Coaching <em>decks</em></h1>
+   <div class="h-sub">Open a deck to present in-app — full screen, arrow keys or on-screen arrows to move through slides.</div>
+   <div class="deck-grid">
+     ${DECKS.map((d,i)=>`<div class="deckc" data-i="${i}">
+        <div class="deck-cover ${d.cls}"><span class="lvl">${d.glyph}</span></div>
+        <div class="deck-body"><div class="deck-k">${d.k}</div><div class="deck-t">${d.name}</div><div class="deck-d">${d.desc}</div>
+        <span class="deck-go">▶ Present deck</span></div></div>`).join('')}
+   </div>`;
+  $$('#v-webinars .deckc').forEach(el=>el.onclick=()=>openDeck(DECKS[+el.dataset.i]));
+}
+let _deckKeyHandler=null;
+function openDeck(d){const f=$('#presFrame');
+  $('#presTitle').textContent=d.k+' — '+d.name;$('#presCount').textContent='';
+  f.src=d.file;$('#present').classList.add('open');document.body.style.overflow='hidden';
+  f.onload=()=>{try{const w=f.contentWindow;const doc=f.contentDocument;
+    if(typeof w.go==='function'){const orig=w.go;w.go=function(n){orig(n);deckCount();};}
+    deckCount();}catch(e){$('#presCount').textContent='';}};
+  _deckKeyHandler=e=>{if(e.key==='Escape')closeDeck();else if(e.key==='ArrowRight'||e.key===' ')deckNav(1);else if(e.key==='ArrowLeft')deckNav(-1);};
+  document.addEventListener('keydown',_deckKeyHandler);
+}
+function deckSlides(){try{return[...$('#presFrame').contentDocument.querySelectorAll('.slide')];}catch(e){return[];}}
+function deckCount(){const s=deckSlides();if(!s.length){$('#presCount').textContent='';return;}
+  const cur=s.findIndex(x=>x.classList.contains('active'));$('#presCount').textContent=(cur+1)+' / '+s.length;
+  $('#presPrev').disabled=cur<=0;$('#presNext').disabled=cur>=s.length-1;}
+function deckNav(dir){try{const w=$('#presFrame').contentWindow;const s=deckSlides();if(!s.length||typeof w.go!=='function')return;
+  const cur=s.findIndex(x=>x.classList.contains('active'));w.go(cur+dir);deckCount();}catch(e){}}
+function closeDeck(){$('#present').classList.remove('open');$('#presFrame').src='about:blank';document.body.style.overflow='';
+  if(_deckKeyHandler){document.removeEventListener('keydown',_deckKeyHandler);_deckKeyHandler=null;}}
 
 </script>
 </body>

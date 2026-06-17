@@ -1,8 +1,0 @@
-# THUNDRR GO HUB — Netlify build
-# Drop new exports into /data, commit, and Netlify recompiles data.json automatically.
-[build]
-  command = "npm install && node build.js"
-  publish = "."
-
-[build.environment]
-  NODE_VERSION = "20"

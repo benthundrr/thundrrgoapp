@@ -226,6 +226,10 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
 .ccard .x{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:8px;border:1px solid var(--br);
   background:var(--bg2);color:var(--mu);font-size:13px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
 .ccard:hover .x{opacity:1}.ccard .x:hover{color:var(--red);border-color:var(--red-br)}
+.ccard .callb{position:absolute;top:8px;right:38px;width:24px;height:24px;border-radius:8px;border:1px solid var(--br);background:var(--bg2);color:var(--p);font-size:12px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.ccard:hover .callb{opacity:1}.ccard .callb:hover{border-color:var(--p);background:var(--ps)}
+.adm-call{font-size:12px;font-weight:800;padding:6px 9px;border-radius:9px;border:1px solid var(--br);background:var(--bg2);color:var(--p);margin-left:6px}
+.adm-call:hover{border-color:var(--p);background:var(--ps)}
 .cinfo{flex:1;min-width:0}
 .cname{font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chandle{font-size:12px;font-weight:600;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -583,6 +587,8 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const LS={theme:'tgo_theme'};
 const CREDS={ben:'ben123',andrew:'andrew55',teton:'teton99',jenn:'jenn11'};
+const CALENDLY={ben:'https://calendly.com/ben-thundrrgo/30min',teton:'https://calendly.com/teton-thundrr/ttgo-creator-call'};
+const myCalendly=()=>CALENDLY[USER]||CALENDLY.ben;
 let DB=null,MANAGED=new Set(),CUR='dash',USER=null;
 const managedKey=()=>'tgo_managed_'+(USER||'guest');
 
@@ -876,11 +882,12 @@ function drawAdminTable(){const q=ADM_Q.trim().toLowerCase();
     <td class="r hide-sm">${r.views?fmt(r.views):'–'}</td>
     <td class="r">${r.gmv?money(r.gmv):'–'}</td>
     <td class="r hide-sm">${r.orders||'–'}</td>
-    <td class="r"><button class="adm-add ${MANAGED.has(r.u)?'in':''}" data-add="${esc(r.u)}">${MANAGED.has(r.u)?'✓ Added':'+ Add'}</button></td>
+    <td class="r"><button class="adm-add ${MANAGED.has(r.u)?'in':''}" data-add="${esc(r.u)}">${MANAGED.has(r.u)?'✓ Added':'+ Add'}</button><button class="adm-call" data-callmenu="${esc(r.u)}" title="Schedule a call">📞</button></td>
   </tr>`).join('')||`<tr><td colspan="7"><div class="muted-note">No creators match “${esc(q)}”.</div></td></tr>`;
   $('#admFoot').textContent=rows.length>cap?`Showing top ${cap} of ${rows.length} — refine your search to narrow down.`:`${rows.length} creator${rows.length!==1?'s':''}`;
-  $$('#admBody tr[data-u]').forEach(tr=>tr.onclick=e=>{if(e.target.dataset.add)return;openProfile(tr.dataset.u);});
+  $$('#admBody tr[data-u]').forEach(tr=>tr.onclick=e=>{if(e.target.dataset.add||e.target.dataset.callmenu)return;openProfile(tr.dataset.u);});
   $$('#admBody .adm-add').forEach(b=>b.onclick=e=>{e.stopPropagation();admAdd(b.dataset.add);});
+  $$('#admBody .adm-call').forEach(b=>b.onclick=e=>{e.stopPropagation();scheduleMenu(b.dataset.callmenu);});
 }
 function admAdd(u){const had=MANAGED.has(u);if(had)MANAGED.delete(u);else MANAGED.add(u);saveManaged();
   drawAdminTable();renderRoster();renderMap();renderCoach();
@@ -1021,9 +1028,10 @@ function drawRosterGrid(){const q=($('#filterInp')&&$('#filterInp').value||'').t
   const rows=list.map(rec).sort((a,b)=>{const ag=a.snap?a.snap.sales:-1,bg=b.snap?b.snap.sales:-1;return bg-ag||a.name.localeCompare(b.name);});
   $('#rosterGrid').innerHTML=rows.map(r=>{const has=!!r.snap;
     const m=has?`<div class="cm"><div class="v">${money(r.snap.sales)}</div><div class="l">GMV</div></div><div class="cm"><div class="v">${fmt(r.snap.views)}</div><div class="l">Views</div></div><div class="cm"><div class="v">${r.snap.orders}</div><div class="l">Orders</div></div>`:`<span class="pill muted">awaiting data</span>`;
-    return `<div class="ccard" data-u="${r.u}"><button class="x" data-rm="${r.u}">✕</button><div class="av">${initials(r.name)}</div>
+    return `<div class="ccard" data-u="${r.u}"><button class="x" data-rm="${r.u}">✕</button><button class="callb" data-call="${r.u}" title="Schedule check-in">📞</button><div class="av">${initials(r.name)}</div>
       <div class="cinfo"><div class="cname">${esc(r.name)}</div><div class="chandle">@${esc(r.u)}${r.prof.level?` · ${r.prof.level}`:''}</div><div class="cmetrics">${m}</div></div></div>`;}).join('');
-  $$('#rosterGrid .ccard').forEach(el=>el.onclick=e=>{if(e.target.dataset.rm)return;openProfile(el.dataset.u);});
+  $$('#rosterGrid .ccard').forEach(el=>el.onclick=e=>{if(e.target.dataset.rm||e.target.dataset.call)return;openProfile(el.dataset.u);});
+  $$('#rosterGrid .callb').forEach(b=>b.onclick=e=>{e.stopPropagation();emailSchedule(b.dataset.call,'checkin');});
   $$('#rosterGrid .x').forEach(b=>b.onclick=e=>{e.stopPropagation();MANAGED.delete(b.dataset.rm);saveManaged();refreshAll();toast('Removed @'+b.dataset.rm);});reveal($('#rosterGrid'),'.ccard',30);}
 
 /* ---------------- MODAL / PROFILE ---------------- */
@@ -1206,6 +1214,29 @@ function emailReport(u){
   const fname='THUNDRR-GO-Coaching-'+(r.name||u).replace(/[^\w]+/g,'-')+'-'+IDX.curMonth+'.pdf';
   reportToPDF(fname).then(()=>toast('✅ PDF downloaded — attach it in the Gmail tab'))
     .catch(e=>{console.error(e);toast('Couldn’t build PDF — use ⎙ Save as PDF instead');});}
+
+/* ---- scheduling invites (check-in / onboarding) — opens Gmail prefilled, no PDF ---- */
+function scheduleTemplate(u,type){
+  const r=rec(u),h='@'+r.u,cal=myCalendly();
+  if(type==='onboard')return{email:r.ro.email||'',subject:'Thundrr TikTok GO Onboarding Reminder',
+    body:`Hey ${h} We'd love to get you onboarded fully to our Agency on TikTok GO! Please schedule an intro call here: ${cal}
+
+We'll go over everything you need to know to start posting and begin earning commission on GO with our assistance. Let me know if you have any questions.`};
+  return{email:r.ro.email||'',subject:'Thundrr TikTok GO Check-In',
+    body:`Hey ${h}! Hope you're doing well. Would love to schedule a quick check-in call and go over some of your analytics and see if we can make any small plans or adjustments to keep your GMV increasing.
+
+Please feel free to book here! ${cal}`};}
+function emailSchedule(u,type){
+  const t=scheduleTemplate(u,type);
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(t.email)}&su=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`,'_blank','noopener');
+  toast(t.email?`Opening Gmail — ${type==='onboard'?'onboarding':'check-in'} invite ready`:'No email on file — add it in Gmail');}
+function scheduleMenu(u){const r=rec(u);
+  openModal(`<div style="padding:6px 4px 4px">
+    <div class="phead" style="margin-bottom:6px"><div class="av">${initials(r.name)}</div><div style="min-width:0"><h2 style="font-size:20px">Schedule with</h2><div class="ph">@${esc(r.u)}</div></div></div>
+    <div class="muted-note" style="text-align:left;margin:2px 0 16px">${r.ro.email?'✉ '+esc(r.ro.email):'No email on file — you can add it in the Gmail tab'} · books to your Calendly</div>
+    <button class="addbtn" style="width:100%;margin-bottom:10px;justify-content:center" onclick="closeModal();emailSchedule('${esc(u)}','checkin')">📞 Check-in call invite</button>
+    <button class="addbtn" style="width:100%;justify-content:center;background:var(--blue);box-shadow:none" onclick="closeModal();emailSchedule('${esc(u)}','onboard')">🚀 Onboarding intro invite</button>
+  </div>`);}
 
 /* ---------------- MAP ---------------- */
 const STATE_NAMES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};

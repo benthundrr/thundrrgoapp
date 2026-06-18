@@ -673,9 +673,9 @@ function dailyFor(scope){const by={};for(const p of DB.posts){if(!inScope(p.date
     if(A){d.ag+=p.sales;if(v)d.av++;}if(T){d.tg+=p.sales;if(v)d.tv++;}}
   const dates=Object.keys(by).sort();let ag=0,tg=0,av=0,tv=0;const out=[];
   for(const dt of dates){const x=by[dt];ag+=x.ag;tg+=x.tg;av+=x.av;tv+=x.tv;out.push({d:dt,ag:Math.round(ag*100)/100,tg:Math.round(tg*100)/100,av,tv});}return out;}
-function aggFor(list,scope){let V=0,P=0,active=0;list.forEach(u=>{const ux=IDX.byUser[u];if(!ux)return;let v=0,p=0;
+function aggFor(scope){let V=0,P=0,active=0;for(const u in IDX.byUser){const ux=IDX.byUser[u];let v=0,p=0;
     if(scope==='all'){for(const m in ux.months){v+=ux.months[m].views;p+=ux.months[m].posts;}}else{const c=ux.months[scope];if(c){v=c.views;p=c.posts;}}
-    if(p>0)active++;V+=v;P+=p;});return{V,P,active};}
+    if(p>0)active++;V+=v;P+=p;}return{V,P,active};}
 function prevScope(scope){if(scope==='all')return null;const i=IDX.months.indexOf(scope);return i>0?IDX.months[i-1]:null;}
 function setScope(s){DASH_SCOPE=s;renderDash();}
 
@@ -685,7 +685,7 @@ function renderDash(){
   const scope=DASH_SCOPE,ps=prevScope(scope);
   let K=periodKPIs(scope);                       // authoritative: month=its snapshot, all=sum of snapshots
   const m=industryFor(scope),mp=ps?industryFor(ps):null;
-  const ag=aggFor(list,scope),pag=ps?aggFor(list,ps):{V:0,P:0,active:0};
+  const ag=aggFor(scope),pag=ps?aggFor(ps):{V:0,P:0,active:0};
   const dscope=dailyFor(scope);
   const postTot=m.acc.gmv+m.ttd.gmv;
   if(!K.matched){K={gmv:Math.round(postTot*100)/100,orders:0,redemption:0,redeemed:0,views:ag.V,aov:0,sellers:ag.active,start:scope+'01',end:scope+'31',matched:false,estimated:true};}
@@ -706,7 +706,7 @@ function renderDash(){
   $('#v-dash').innerHTML=`
    <div class="h-eyebrow">TikTok GO · Program</div>
    <h1 class="h-title">Program <em>dashboard</em></h1>
-   <div class="h-sub">${list.length} creators · ${K.sellers} selling${scope==='all'?' across all months':''}</div>
+   <div class="h-sub">${allUsers().length} creators · ${K.sellers} selling${scope==='all'?' across all months':' in '+mShort}</div>
 
    <div class="chips" style="margin-top:16px">${chips}</div>
 
@@ -754,7 +754,7 @@ function renderDash(){
      </div>
      <div>
        <div class="card">
-         <div class="card-h"><h3><span class="dt"></span>GMV leaderboard</h3><span class="meta">latest export</span></div>
+         <div class="card-h"><h3><span class="dt"></span>GMV leaderboard</h3><span class="meta">${scopeLabel}</span></div>
          <div class="lb" id="leaderboard"></div>
        </div>
        <div class="card" id="attentionCard">
@@ -766,8 +766,8 @@ function renderDash(){
 
   $('#gmvChart').innerHTML=dscope.length?multiChart(dscope.map(p=>ymd(p.d)),[{color:'var(--p)',vals:dscope.map(p=>Math.round(p.ag*sc*100)/100)},{color:'var(--blue)',vals:dscope.map(p=>Math.round(p.tg*sc*100)/100)}],money):'<div class="muted-note">No data in range.</div>';
   $('#validChart').innerHTML=dscope.length?multiChart(dscope.map(p=>ymd(p.d)),[{color:'var(--p)',vals:dscope.map(p=>p.av)},{color:'var(--blue)',vals:dscope.map(p=>p.tv)}],fmt):'<div class="muted-note">No posts in range.</div>';
-  renderViewTrend(list);
-  renderLeaderboard(list);renderAttention(list);
+  renderViewTrend();
+  renderLeaderboard(scope);renderAttention(list);
   polish($('#v-dash'));
 }
 function mini(l,raw,type,d,note){return `<div class="mini"><div class="l">${l}</div><div class="v">${numSpan(raw,type)}</div><div class="d ${d.c}">${d.t} <span class="flat" style="font-weight:700">${note}</span></div></div>`;}
@@ -779,14 +779,14 @@ function progCard(cls,ico,title,valid,gmv,dv,mShort){
   </div>`;}
 
 function mLabel(m){if(!m)return'—';const mm=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return mm[+m.slice(4,6)]+' '+m.slice(0,4);}
-function renderViewTrend(list){const map={};list.forEach(u=>{const ux=IDX.byUser[u];if(!ux)return;Object.entries(ux.days).forEach(([d,v])=>map[d]=(map[d]||0)+v.views);});
+function renderViewTrend(){const map={};for(const u in IDX.byUser){const ux=IDX.byUser[u];Object.entries(ux.days).forEach(([d,v])=>map[d]=(map[d]||0)+v.views);}
   const days=Object.keys(map).sort().slice(-30);
   $('#viewTrend').innerHTML=days.length?areaChart(days.map(ymd),days.map(d=>map[d]),fmt):'<div class="muted-note">No post activity yet.</div>';}
-function renderLeaderboard(list){const rows=list.map(rec).filter(r=>r.snap).sort((a,b)=>b.snap.sales-a.snap.sales).slice(0,10);
+function renderLeaderboard(scope){const rows=allUsers().map(u=>({u,name:rec(u).name,sp:userScopeSnap(u,scope)})).filter(r=>r.sp&&r.sp.sales>0).sort((a,b)=>b.sp.sales-a.sp.sales).slice(0,10);
   $('#leaderboard').innerHTML=rows.length?rows.map((r,i)=>`<div class="lrow" data-u="${r.u}">
     <div class="rank ${i<3?'t'+(i+1):''}">${i+1}</div><div class="av">${initials(r.name)}</div>
-    <div class="lmid"><div class="lname">${esc(r.name)}</div><div class="lhandle">@${esc(r.u)} · ${r.snap.orders} orders</div></div>
-    <div class="lstat"><div class="lgmv">${money(r.snap.sales)}</div><div class="lsub">${fmt(r.snap.views)} views</div></div></div>`).join(''):'<div class="muted-note">No GMV reported yet.</div>';
+    <div class="lmid"><div class="lname">${esc(r.name)}</div><div class="lhandle">@${esc(r.u)} · ${r.sp.orders} orders</div></div>
+    <div class="lstat"><div class="lgmv">${money(r.sp.sales)}</div><div class="lsub">${fmt(r.sp.views)} views</div></div></div>`).join(''):'<div class="muted-note">No GMV reported yet.</div>';
   $$('#leaderboard .lrow').forEach(el=>el.onclick=()=>openProfile(el.dataset.u));reveal($('#leaderboard'),'.lrow',45);}
 function renderAttention(list){const quiet=list.map(rec).filter(r=>{const c=r.ux.months[IDX.curMonth];return(!c||c.posts===0)&&(r.ux.posts.length||r.snap);});
   if(!quiet.length){$('#attentionCard').classList.add('hide');return;}$('#attentionCard').classList.remove('hide');
@@ -817,19 +817,20 @@ function multiChart(labels,series,f){const W=900,H=180,pl=10,pr=10,pt=16,pb=22,i
 
 /* ---------------- ADMIN (everyone) ---------------- */
 let ADM_SORT='gmv',ADM_Q='';
-function allUsers(){return [...new Set([...Object.keys(latestSnap().byUser),...Object.keys(DB.roster||{})])];}
+function allUsers(){const s=new Set(Object.keys(DB.profiles||{}));(DB.snapshots||[]).forEach(sn=>{for(const u in sn.byUser)s.add(u);});return [...s];}
+function userScopeSnap(u,scope){const ss=scope==='all'?monthlySnaps():monthlySnaps().filter(s=>s.monthKey===scope);
+  let sales=0,orders=0,views=0,red=0,redO=0,hit=false;ss.forEach(s=>{const x=s.byUser[u];if(x){hit=true;sales+=x.sales||0;orders+=x.orders||0;views+=x.views||0;red+=x.redemption||0;redO+=x.redeemedOrders||0;}});
+  return hit?{sales:Math.round(sales*100)/100,orders,views,redemption:Math.round(red*100)/100,redeemedOrders:redO}:null;}
 function renderAdmin(){
-  const total=allUsers().length,snap=latestSnap().byUser;
-  const sellers=Object.values(snap).filter(s=>s.sales>0).length;
-  const gmv=Object.values(snap).reduce((a,s)=>a+s.sales,0);
+  const total=allUsers().length,K=periodKPIs('all');
   $('#v-admin').innerHTML=`
    <div class="h-eyebrow">Admin · everyone</div>
    <h1 class="h-title">All <em>creators</em></h1>
    <div class="h-sub">Full directory of every creator in the program. Tap a row for the profile, or add anyone to your roster.</div>
    <div class="mini-stats">
      ${mini('Creators',total,'int',{c:'flat',t:''},'in program')}
-     ${mini('Selling',sellers,'int',{c:'flat',t:''},'GMV > $0')}
-     ${mini('Total GMV',gmv,'money',{c:'flat',t:''},'all time')}
+     ${mini('Selling',K.sellers,'int',{c:'flat',t:''},'ever sold')}
+     ${mini('Total GMV',K.gmv,'money',{c:'flat',t:''},'all-time')}
      ${mini('In your roster',MANAGED.size,'int',{c:'flat',t:''},'@'+(USER||''))}
    </div>
    <div class="adm-bar">
@@ -847,8 +848,8 @@ function renderAdmin(){
   $$('#v-admin .adm-sort button').forEach(b=>b.onclick=()=>{ADM_SORT=b.dataset.s;$$('#v-admin .adm-sort button').forEach(x=>x.classList.toggle('on',x===b));drawAdminTable();});
   drawAdminTable();polish($('#v-admin'));
 }
-function drawAdminTable(){const snap=latestSnap().byUser;const q=ADM_Q.trim().toLowerCase();
-  let rows=allUsers().map(u=>{const r=rec(u),sp=r.snap;const st=normState(r.ro.state)||'';
+function drawAdminTable(){const q=ADM_Q.trim().toLowerCase();
+  let rows=allUsers().map(u=>{const r=rec(u),sp=userScopeSnap(u,'all'),st=normState(r.ro.state)||'';
     return{u,name:r.name,lv:levelNum(u),loc:[r.ro.city,st].filter(Boolean).join(', '),st,city:r.ro.city||'',
       gmv:sp?sp.sales:0,views:sp?sp.views:0,orders:sp?sp.orders:0};});
   if(q)rows=rows.filter(r=>r.u.includes(q)||r.name.toLowerCase().includes(q)||r.loc.toLowerCase().includes(q)||(STATE_NAMES[r.st]||'').toLowerCase().includes(q));

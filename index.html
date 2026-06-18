@@ -120,6 +120,13 @@ label.fld{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;text-
 .kpi.hero .kv{font-size:clamp(36px,6.5vw,54px);font-weight:900;line-height:1;margin-top:10px;color:#fff}
 .kpi.hero .kcap{font-size:12px;color:rgba(255,255,255,.9);font-weight:600;margin-top:10px}
 @media(max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi.hero .kv{font-size:40px}}
+.rpanels{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+@media(max-width:820px){.rpanels{grid-template-columns:1fr}}
+.pnl{background:var(--card);border:1px solid var(--br);border-radius:18px;padding:16px 16px 8px}
+.pnl-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;margin-bottom:10px}
+.pnl-h .tag{margin-left:auto;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--mu)}
+.pnl .empty-row{color:var(--mu);font-size:12.5px;padding:10px 2px 14px}
+.badge-new{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:var(--ok-bg,rgba(34,197,94,.15));color:#16a34a;padding:2px 7px;border-radius:100px}
 .examples{margin-top:10px;border-top:1px solid var(--br);padding-top:10px;display:none}
 .examples.open{display:block;animation:fade .25s ease both}
 .ex-row{display:flex;align-items:center;gap:10px;padding:7px 0}
@@ -881,22 +888,127 @@ function admAdd(u){const had=MANAGED.has(u);if(had)MANAGED.delete(u);else MANAGE
   toast(had?'Removed from roster':'Added to your roster');}
 
 /* ---------------- ROSTER ---------------- */
+/* ---------------- ROSTER (managed dashboard) ---------------- */
+let ROSTER_SCOPE=null;
+function setRosterScope(s){ROSTER_SCOPE=s;renderRoster();}
+function rosterKPIs(arr,scope){let gmv=0,orders=0,red=0,redO=0,views=0;const sellers=new Set();
+  arr.forEach(u=>{const s=userScopeSnap(u,scope);if(s){gmv+=s.sales;orders+=s.orders;red+=s.redemption;redO+=s.redeemedOrders;views+=s.views;if(s.sales>0)sellers.add(u);}});
+  return{gmv:Math.round(gmv*100)/100,orders,redemption:Math.round(red*100)/100,redeemed:redO,views,aov:orders?gmv/orders:0,sellers:sellers.size};}
+function rosterInd(set,scope){const acc={valid:0,gmv:0},ttd={valid:0,gmv:0};let tv=0,V=0,P=0;
+  for(const p of DB.posts){if(!set.has(p.u))continue;if(!(scope==='all'||p.date.slice(0,6)===scope))continue;
+    const v=VALID(p),A=p.ind==='ACC'||p.ind==='BOTH',T=p.ind==='TTD'||p.ind==='BOTH';
+    if(A){acc.gmv+=p.sales;if(v)acc.valid++;}if(T){ttd.gmv+=p.sales;if(v)ttd.valid++;}if(v)tv++;V+=p.views;P++;}
+  acc.gmv=Math.round(acc.gmv*100)/100;ttd.gmv=Math.round(ttd.gmv*100)/100;return{acc,ttd,totalValid:tv,views:V,posts:P};}
+function rosterDaily(set,scope){const by={};for(const p of DB.posts){if(!set.has(p.u))continue;if(!(scope==='all'||p.date.slice(0,6)===scope))continue;
+    const d=by[p.date]=by[p.date]||{ag:0,tg:0,av:0,tv:0,v:0};const vv=VALID(p),A=p.ind==='ACC'||p.ind==='BOTH',T=p.ind==='TTD'||p.ind==='BOTH';
+    if(A){d.ag+=p.sales;if(vv)d.av++;}if(T){d.tg+=p.sales;if(vv)d.tv++;}d.v+=p.views;}
+  const dates=Object.keys(by).sort();let ag=0,tg=0,av=0,tv=0;const out=[];
+  for(const dt of dates){const x=by[dt];ag+=x.ag;tg+=x.tg;av+=x.av;tv+=x.tv;out.push({d:dt,ag:Math.round(ag*100)/100,tg:Math.round(tg*100)/100,av,tv,v:x.v});}return out;}
+function newSellers(arr,scope){const ps=prevScope(scope);return arr.map(u=>{const cur=userScopeSnap(u,scope),prev=ps?userScopeSnap(u,ps):null;
+    if(cur&&cur.sales>0&&(!prev||prev.sales===0))return{u,name:rec(u).name,sales:cur.sales,orders:cur.orders,first:!ps||!prev};return null;}).filter(Boolean).sort((a,b)=>b.sales-a.sales);}
+function rosterAttention(arr,scope){const ps=prevScope(scope);return arr.map(u=>{const ux=IDX.byUser[u];
+    const mp=scope==='all'?(ux?ux.posts.length:0):(ux&&ux.months[scope]?ux.months[scope].posts:0);
+    const cur=userScopeSnap(u,scope),prev=ps?userScopeSnap(u,ps):null;let reason=null;
+    if(mp===0)reason=scope==='all'?'No posts on record':'No posts in '+mLabel(scope).split(' ')[0];
+    else if(prev&&prev.sales>0&&(!cur||cur.sales===0))reason='Stopped selling';
+    else if(!cur||cur.sales===0)reason='No sales yet';
+    return reason?{u,name:rec(u).name,reason}:null;}).filter(Boolean);}
+
 function renderRoster(){
+  if(!ROSTER_SCOPE)ROSTER_SCOPE=IDX.curMonth||'all';
+  const scope=ROSTER_SCOPE,ps=prevScope(scope),arr=[...MANAGED],set=new Set(arr);
+  const scopeLabel=scope==='all'?'All time':mLabel(scope),mShort=scope==='all'?'all-time':mLabel(scope).split(' ')[0];
+
+  if(!MANAGED.size){
+    $('#v-roster').innerHTML=`
+     <div class="h-eyebrow">My roster</div><h1 class="h-title">My <em>roster</em></h1>
+     <div class="h-sub">Add the creators you manage to unlock your own performance dashboard.</div>
+     <div class="r-top"><input id="addInp" class="inp" placeholder="@username (or paste several)" autocapitalize="none"><button class="addbtn" id="addBtn">Add</button></div>
+     <div class="tools"><button class="tool" id="syncBtn">Sync from roster file</button><button class="tool" id="importDataBtn">Import all with data</button></div>
+     <div class="empty" style="margin-top:14px"><div class="big">☷</div><h4>Your roster is empty</h4><p>Add creators by username above, or browse the full directory in the <b>Admin</b> tab and tap “+ Add”.</p><button class="addbtn" style="padding:0 22px" onclick="go('admin')">Browse all creators</button></div>`;
+    wireRosterTools();return;
+  }
+
+  const K=rosterKPIs(arr,scope),Kp=ps?rosterKPIs(arr,ps):null;
+  const ind=rosterInd(set,scope),daily=rosterDaily(set,scope);
+  const dEnd=daily.length?daily.at(-1).ag+daily.at(-1).tg:0,sc=dEnd?K.gmv/dEnd:1;
+  const tot=ind.acc.gmv+ind.ttd.gmv,accSh=tot?ind.acc.gmv/tot:0.5;
+  const top=arr.map(u=>({u,name:rec(u).name,sp:userScopeSnap(u,scope)})).filter(r=>r.sp&&r.sp.sales>0).sort((a,b)=>b.sp.sales-a.sp.sales);
+  const news=newSellers(arr,scope),att=rosterAttention(arr,scope);
+  const withData=arr.filter(u=>userScopeSnap(u,scope)).length;
+  const chips=[...IDX.months].reverse().map(x=>`<button class="chip ${scope===x?'on':''}" onclick="setRosterScope('${x}')">${mLabel(x).split(' ')[0]}</button>`).join('')+`<button class="chip ${scope==='all'?'on':''}" onclick="setRosterScope('all')">All time</button>`;
+  const prow=(u,name,right)=>`<div class="lrow" data-u="${esc(u)}"><div class="av">${initials(name)}</div><div class="lmid"><div class="lname">${esc(name)}</div><div class="lhandle">@${esc(u)}</div></div><div class="lstat">${right}</div></div>`;
+
   $('#v-roster').innerHTML=`
-   <div class="h-eyebrow">My roster</div>
-   <h1 class="h-title">Creators <em>I manage</em></h1>
-   <div class="h-sub">Type a username to add. Tap a card for the full profile.</div>
+   <div class="h-eyebrow">My roster · @${esc(USER||'')}</div>
+   <h1 class="h-title">My <em>dashboard</em></h1>
+   <div class="h-sub">${MANAGED.size} creators you manage · ${K.sellers} selling in ${mShort}</div>
+
+   <div class="chips" style="margin-top:14px">${chips}</div>
+
+   <div class="kpis">
+     <div class="kpi hero"><div class="kl">Your creators' GMV · ${scopeLabel}</div><div class="kv">${numSpan(K.gmv,'moneyC')}</div>
+       <div class="kcap">${withData} of ${MANAGED.size} with data · ${K.orders} orders · AOV ${money(K.aov)}</div></div>
+     <div class="kpi"><div class="kl">Orders</div><div class="kv">${numSpan(K.orders,'int')}</div></div>
+     <div class="kpi"><div class="kl">Valid posts</div><div class="kv">${numSpan(ind.totalValid,'int')}</div></div>
+     <div class="kpi"><div class="kl">Views</div><div class="kv">${numSpan(ind.views,'fmt')}</div></div>
+     <div class="kpi"><div class="kl">Redemption</div><div class="kv">${numSpan(K.redemption,'moneyC')}</div></div>
+   </div>
+
+   <div class="rpanels">
+     <div class="pnl">
+       <div class="pnl-h">🏆 Doing well<span class="tag">top GMV</span></div>
+       ${top.length?top.slice(0,5).map(r=>prow(r.u,r.name,`<div class="lgmv">${money(r.sp.sales)}</div><div class="lsub">${r.sp.orders} orders</div>`)).join(''):'<div class="empty-row">No sales in this period yet.</div>'}
+     </div>
+     <div class="pnl">
+       <div class="pnl-h">✨ New sales<span class="tag">${ps?'vs '+mLabel(ps).split(' ')[0]:'this period'}</span></div>
+       ${news.length?news.slice(0,5).map(r=>prow(r.u,r.name,`<div class="lgmv">${money(r.sales)}</div><div class="lsub">${r.first?'<span class="badge-new">first sale</span>':'newly selling'}</div>`)).join(''):'<div class="empty-row">No newly-selling creators this period.</div>'}
+     </div>
+     <div class="pnl">
+       <div class="pnl-h">⚠️ Needs attention<span class="tag">${att.length}</span></div>
+       ${att.length?att.slice(0,6).map(r=>prow(r.u,r.name,`<span class="pill warn">${esc(r.reason)}</span>`)).join(''):'<div class="empty-row">Everyone\'s active — nice.</div>'}
+     </div>
+   </div>
+
+   <div class="dash-layout">
+     <div>
+       <div class="card"><div class="card-h"><h3><span class="dt"></span>Your GMV trend</h3><span class="meta">cumulative → ${money(K.gmv)}</span></div>
+         <div id="rGmvChart"></div><div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div></div>
+       <div class="card"><div class="card-h"><h3><span class="dt"></span>Valid posts trend</h3><span class="meta">300+ views · ${scopeLabel}</span></div>
+         <div id="rValidChart"></div><div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div></div>
+     </div>
+     <div>
+       <div class="card"><div class="card-h"><h3><span class="dt"></span>ACC vs TTD</h3><span class="meta">${scopeLabel}</span></div>
+         <div class="prog" style="margin:0">
+           ${progCard('acc','🏨','ACC',ind.acc.valid,Math.round(K.gmv*accSh*100)/100,{c:'flat',t:''},mShort)}
+           ${progCard('ttd','🎟️','TTD',ind.ttd.valid,Math.round(K.gmv*(1-accSh)*100)/100,{c:'flat',t:''},mShort)}
+         </div></div>
+       <div class="card"><div class="card-h"><h3><span class="dt"></span>Daily views</h3><span class="meta">last 30 days</span></div><div id="rViewTrend"></div></div>
+     </div>
+   </div>
+
+   <div class="card-h" style="margin:6px 0 10px"><h3 style="font-size:13px"><span class="dt"></span>Manage roster</h3></div>
    <div class="r-top"><input id="addInp" class="inp" placeholder="@username (or paste several)" autocapitalize="none"><button class="addbtn" id="addBtn">Add</button></div>
    <div class="tools"><button class="tool" id="syncBtn">Sync from roster file</button><button class="tool" id="importDataBtn">Import all with data</button><button class="tool danger" id="clearBtn">Clear all</button></div>
    <input id="filterInp" class="inp" placeholder="🔎 Filter your roster…" autocapitalize="none" style="margin-bottom:14px">
    <div class="grid" id="rosterGrid"></div>`;
-  $('#addBtn').onclick=()=>{const v=$('#addInp').value;if(v.trim()){addUsernames(v);$('#addInp').value='';}};
-  $('#addInp').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addBtn').click();});
-  $('#syncBtn').onclick=()=>{let a=0;Object.keys(DB.roster||{}).forEach(u=>{if(!MANAGED.has(u)){MANAGED.add(u);a++;}});saveManaged();refreshAll();toast(a?`Synced ${a}`:'Already synced');};
-  $('#importDataBtn').onclick=()=>{let a=0;Object.keys(latestSnap().byUser).forEach(u=>{if(!MANAGED.has(u)){MANAGED.add(u);a++;}});saveManaged();refreshAll();toast(a?`Imported ${a}`:'Already imported');};
-  $('#clearBtn').onclick=()=>{if(confirm('Remove all '+MANAGED.size+' creators?')){MANAGED.clear();saveManaged();refreshAll();toast('Cleared');}};
-  $('#filterInp').addEventListener('input',drawRosterGrid);
-  drawRosterGrid();
+
+  const lbls=daily.map(p=>ymd(p.d));
+  $('#rGmvChart').innerHTML=daily.length?multiChart(lbls,[{color:'var(--p)',vals:daily.map(p=>Math.round(p.ag*sc*100)/100)},{color:'var(--blue)',vals:daily.map(p=>Math.round(p.tg*sc*100)/100)}],money):'<div class="muted-note">No sales data in range.</div>';
+  $('#rValidChart').innerHTML=daily.length?multiChart(lbls,[{color:'var(--p)',vals:daily.map(p=>p.av)},{color:'var(--blue)',vals:daily.map(p=>p.tv)}],fmt):'<div class="muted-note">No posts in range.</div>';
+  const vmap={};arr.forEach(u=>{const ux=IDX.byUser[u];if(!ux)return;Object.entries(ux.days).forEach(([d,v])=>vmap[d]=(vmap[d]||0)+v.views);});
+  const vdays=Object.keys(vmap).sort().slice(-30);
+  $('#rViewTrend').innerHTML=vdays.length?areaChart(vdays.map(ymd),vdays.map(d=>vmap[d]),fmt):'<div class="muted-note">No post activity yet.</div>';
+  $$('#v-roster .pnl .lrow').forEach(el=>el.onclick=()=>openProfile(el.dataset.u));
+  wireRosterTools();drawRosterGrid();polish($('#v-roster'));
+}
+function wireRosterTools(){
+  $('#addBtn')&&($('#addBtn').onclick=()=>{const v=$('#addInp').value;if(v.trim()){addUsernames(v);$('#addInp').value='';}});
+  $('#addInp')&&$('#addInp').addEventListener('keydown',e=>{if(e.key==='Enter')$('#addBtn').click();});
+  $('#syncBtn')&&($('#syncBtn').onclick=()=>{let a=0;Object.keys(DB.roster||{}).forEach(u=>{if(!MANAGED.has(u)){MANAGED.add(u);a++;}});saveManaged();refreshAll();toast(a?`Synced ${a}`:'Already synced');});
+  $('#importDataBtn')&&($('#importDataBtn').onclick=()=>{let a=0;allUsers().forEach(u=>{if(!MANAGED.has(u)){MANAGED.add(u);a++;}});saveManaged();refreshAll();toast(a?`Imported ${a}`:'Already imported');});
+  $('#clearBtn')&&($('#clearBtn').onclick=()=>{if(confirm('Remove all '+MANAGED.size+' creators?')){MANAGED.clear();saveManaged();refreshAll();toast('Cleared');}});
+  $('#filterInp')&&$('#filterInp').addEventListener('input',drawRosterGrid);
 }
 function refreshAll(){renderDash();renderAdmin();renderRoster();renderCoach();renderMap();}
 function addUsernames(raw){const parts=raw.split(/[\s,;\n]+/).map(s=>s.replace(/^@/,'').trim().toLowerCase()).filter(Boolean);
@@ -1050,11 +1162,49 @@ function coachFor(u){if(CUR!=='coach')go('coach');closeModal();
       <table class="bench"><thead><tr><th>Metric</th><th class="r">You</th><th class="r">Benchmark</th><th class="r">Status</th></tr></thead><tbody>${benchRows}</tbody></table>
       <div class="sect"><span class="dt"></span>Tips from coaching</div>${tipsHtml}
       <div class="thesis" style="margin-top:18px"><b>Next milestone:</b> ${a.milestone}</div>
-      <div class="mactions"><button class="ghost" onclick="window.print()">⎙ Save as PDF</button><button class="ghost" onclick="openProfile('${esc(r.u)}')">View full profile</button></div>
+      <div class="mactions"><button class="ghost" onclick="emailReport('${esc(r.u)}')">✉ Email report</button><button class="ghost" onclick="window.print()">⎙ Save as PDF</button><button class="ghost" onclick="openProfile('${esc(r.u)}')">View full profile</button></div>
     </div></div>`;
   reveal($('#coachReport'),'.ins',45);reveal($('#coachReport'),'.thesis',120);runCounters($('#coachReport'));
   window.scrollTo({top:0});
 }
+
+/* ---- email coaching report (downloads PDF + opens Gmail prefilled) ---- */
+function loadScript(src){return new Promise((res,rej)=>{if([...document.scripts].some(s=>s.src===src))return res();
+  const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load '+src));document.head.appendChild(s);});}
+async function ensurePdfLibs(){
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');}
+async function reportToPDF(filename){
+  await ensurePdfLibs();
+  const el=document.querySelector('#coachReport .report');if(!el)throw new Error('no report');
+  const root=document.documentElement,prev=root.dataset.theme;root.dataset.theme='light';
+  await new Promise(r=>setTimeout(r,80));
+  const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollX:0,scrollY:0});
+  root.dataset.theme=prev;
+  const img=canvas.toDataURL('image/jpeg',0.95);const{jsPDF}=window.jspdf;
+  const pdf=new jsPDF('p','mm','a4');const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+  const iw=pw,ih=canvas.height*pw/canvas.width;let left=ih,pos=0;
+  pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;
+  while(left>0){pos=left-ih;pdf.addPage();pdf.addImage(img,'JPEG',0,pos,iw,ih);left-=ph;}
+  pdf.save(filename);}
+
+/* === EDIT THIS to change the email wording === */
+function coachEmailTemplate(u){
+  const r=rec(u);
+  const subject='Thundrr TikTok GO Performance Review + Strategy!';
+  const body=`Hey @${r.u}. Here's your performance report so far this month, attached is a PDF that showcases your analytics, strategy suggestions and consistencies/inconsistencies we found. This data should help you narrow down/fine tune how you post, how long your videos are etc! 
+
+This is based on your data + using data from successfully converting creators to provide advice. These are sent on a monthly basis or upon request. Please let me know if you have any questions.`;
+  return{email:r.ro.email||'',subject,body};}
+
+function emailReport(u){
+  const r=rec(u),t=coachEmailTemplate(u);
+  const gmail=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(t.email)}&su=${encodeURIComponent(t.subject)}&body=${encodeURIComponent(t.body)}`;
+  window.open(gmail,'_blank','noopener');   // sync → not popup-blocked
+  toast(t.email?'Opening Gmail · building PDF…':'No email on file — add it in Gmail · building PDF…');
+  const fname='THUNDRR-GO-Coaching-'+(r.name||u).replace(/[^\w]+/g,'-')+'-'+IDX.curMonth+'.pdf';
+  reportToPDF(fname).then(()=>toast('✅ PDF downloaded — attach it in the Gmail tab'))
+    .catch(e=>{console.error(e);toast('Couldn’t build PDF — use ⎙ Save as PDF instead');});}
 
 /* ---------------- MAP ---------------- */
 const STATE_NAMES={AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'District of Columbia',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming'};

@@ -970,6 +970,12 @@ function renderRoster(){
      </div>
    </div>
 
+   <div class="card-h" style="margin:2px 0 10px"><h3 style="font-size:13px"><span class="dt"></span>ACC vs TTD · ${scopeLabel}</h3></div>
+   <div class="prog">
+     ${progCard('acc','🏨','ACC · Accommodations',ind.acc.valid,Math.round(K.gmv*accSh*100)/100,{c:'flat',t:''},mShort)}
+     ${progCard('ttd','🎟️','TTD · Things to Do',ind.ttd.valid,Math.round(K.gmv*(1-accSh)*100)/100,{c:'flat',t:''},mShort)}
+   </div>
+
    <div class="dash-layout">
      <div>
        <div class="card"><div class="card-h"><h3><span class="dt"></span>Your GMV trend</h3><span class="meta">cumulative → ${money(K.gmv)}</span></div>
@@ -978,11 +984,6 @@ function renderRoster(){
          <div id="rValidChart"></div><div class="legend"><span><i style="background:var(--p)"></i>ACC</span><span><i style="background:var(--blue)"></i>TTD</span></div></div>
      </div>
      <div>
-       <div class="card"><div class="card-h"><h3><span class="dt"></span>ACC vs TTD</h3><span class="meta">${scopeLabel}</span></div>
-         <div class="prog" style="margin:0">
-           ${progCard('acc','🏨','ACC',ind.acc.valid,Math.round(K.gmv*accSh*100)/100,{c:'flat',t:''},mShort)}
-           ${progCard('ttd','🎟️','TTD',ind.ttd.valid,Math.round(K.gmv*(1-accSh)*100)/100,{c:'flat',t:''},mShort)}
-         </div></div>
        <div class="card"><div class="card-h"><h3><span class="dt"></span>Daily views</h3><span class="meta">last 30 days</span></div><div id="rViewTrend"></div></div>
      </div>
    </div>
